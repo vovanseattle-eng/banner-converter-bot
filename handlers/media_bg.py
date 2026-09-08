@@ -37,10 +37,11 @@ async def cb_media_menu(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "upload_media")
 async def cb_upload_media(callback: CallbackQuery, state: FSMContext):
     await state.set_state(SettingsStates.waiting_custom_media)
-    await callback.message.edit_text(
-        f"{title(E.SEND, 'Отправь видео или картинку')} для фона баннера:",
-        parse_mode="HTML",
-    )
+    text = f"{title(E.SEND, 'Отправь видео или картинку')} для фона баннера:"
+    try:
+        await callback.message.edit_caption(caption=text, parse_mode="HTML")
+    except Exception:
+        await callback.message.edit_text(text, parse_mode="HTML")
     await callback.answer()
 
 

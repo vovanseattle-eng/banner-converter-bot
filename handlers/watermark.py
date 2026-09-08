@@ -54,11 +54,14 @@ async def cb_watermark_menu(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "wm:title")
 async def cb_wm_title(callback: CallbackQuery, state: FSMContext):
     await state.set_state(SettingsStates.waiting_wm_text)
-    await callback.message.edit_text(
+    text = (
         f"{title(E.EDIT, 'Введи текст водяного знака')} (до 30 символов):\n"
-        "Например: <code>@my_channel</code> или имя проекта",
-        parse_mode="HTML",
+        "Например: <code>@my_channel</code> или имя проекта"
     )
+    try:
+        await callback.message.edit_caption(caption=text, parse_mode="HTML")
+    except Exception:
+        await callback.message.edit_text(text, parse_mode="HTML")
     await callback.answer()
 
 
