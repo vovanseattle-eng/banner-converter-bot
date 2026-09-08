@@ -1,5 +1,7 @@
+import os
 import asyncio
 import logging
+from aiohttp import web
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -13,6 +15,26 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+
+async def start_health_server():
+    port_str = os.getenv("PORT")
+    if not port_str:
+        return None
+    try:
+        port = int(port_str)
+        app = web.Application()
+        app.router.add_get("/", lambda r: web.Response(text="Banner Converter Bot is running!"))
+        app.router.add_get("/health", lambda r: web.Response(text="OK"))
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(runner, "0.0.0.0", port)
+        await site.start()
+        logger.info(f"Render health-check HTTP сервер запущен на порту {port}")
+        return runner
+    except Exception as e:
+        logger.warning(f"Не удалось запустить health-check сервер: {e}")
+        return None
 
 
 async def main():
@@ -45,6 +67,7 @@ async def main():
     dp.include_router(convert.router)
 
     logger.info("Запуск Telegram-бота конвертера баннеров 60 FPS...")
+    await start_health_server()
 
     # Цикл с автоматическим перезапуском при разрывах соединения/VPN
     while True:
