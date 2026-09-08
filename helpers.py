@@ -72,17 +72,17 @@ def format_main_menu_text(settings: dict) -> str:
     scale = settings.get("emoji_scale", 100)
 
     return (
-        f"{em(E.FIRE, '⚡')} <b>Создан для топового оформления ботов\nor сайтов & каналов</b>\n\n"
-        f"{em(E.FORWARD, '⬆')} <b>Отправь мне:</b>\n"
+        f"{em(E.FIRE, '🔥')} <b>Создан для топового оформления ботов\nor сайтов & каналов</b>\n\n"
+        f"⬆ <b>Отправь мне:</b>\n"
         f"<blockquote>прем эмодзи — можно несколько or\n"
         f"стикер, ссылку на пак emoji or sticker</blockquote>\n\n"
         f"⌘ <b>Конфигурация:</b>\n"
         f"<blockquote>"
-        f"{em(E.BRUSH, '🗡')} <b>Цвет фона:</b> {bg_str}\n"
-        f"{em(E.RESIZE, '↖')} <b>Разрешение:</b> {width}×{height} 60 FPS\n"
-        f"{em(E.MEDIA, '⛶')} <b>Формат:</b> GIF\n"
-        f"{em(E.DESIGN, '🗡')} <b>ЦветEmoji:</b> {recolor_str}\n"
-        f"{em(E.APPS, '❖')} <b>3D Тень:</b> {shadow} · <b>Масштаб:</b> {scale}%\n"
-        f"{em(E.EDIT, '✍️')} <b>Вотермарка:</b> {wm_str}"
+        f"🗡 <b>Цвет фона:</b> {bg_str}\n"
+        f"↖ <b>Разрешение:</b> {width}×{height} 60 FPS\n"
+        f"⛶ <b>Формат:</b> GIF\n"
+        f"🗡 <b>ЦветEmoji:</b> {recolor_str}\n"
+        f"❖ <b>3D Тень:</b> {shadow} · <b>Масштаб:</b> {scale}%\n"
+        f"✍️ <b>Вотермарка:</b> {wm_str}"
         f"</blockquote>"
     )
