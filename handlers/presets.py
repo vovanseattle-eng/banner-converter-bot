@@ -1,5 +1,6 @@
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
+from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
 from database import (
@@ -15,6 +16,17 @@ from states import SettingsStates
 from emoji import E, em, title
 
 router = Router()
+
+
+@router.message(Command("presets"))
+async def cmd_presets(message: Message, state: FSMContext):
+    await state.clear()
+    presets = await get_user_presets(message.from_user.id)
+    text = (
+        f"{title(E.FILE, 'Заметки (Пресеты)')}\n\n"
+        f"<blockquote>Сохраняй готовые конфигурации, чтобы применять их в один клик.</blockquote>"
+    )
+    await message.answer(text, reply_markup=get_presets_kb(presets), parse_mode="HTML")
 
 
 @router.callback_query(F.data == "menu:presets")

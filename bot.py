@@ -5,6 +5,7 @@ from aiohttp import web
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.types import BotCommand, BotCommandScopeDefault, MenuButtonCommands
 
 from config import BOT_TOKEN, PROXY_URL
 from database import init_db
@@ -37,6 +38,19 @@ async def start_health_server():
         return None
 
 
+async def set_bot_commands(bot: Bot):
+    commands = [
+        BotCommand(command="start", description="Главное меню"),
+        BotCommand(command="settings", description="Параметры сцены"),
+        BotCommand(command="presets", description="Сохранённые заметки"),
+        BotCommand(command="help", description="Инструкция по баннерам"),
+    ]
+    try:
+        await bot.set_my_commands(commands, scope=BotCommandScopeDefault())
+        await bot.set_chat_menu_button(menu_button=MenuButtonCommands())
+    except Exception as e:
+        logger.warning(f"Не удалось установить команды бота: {e}")
+
 async def main():
     if not BOT_TOKEN:
         logger.error("❌ BOT_TOKEN не указан в .env файле!")
@@ -55,6 +69,7 @@ async def main():
             logger.warning(f"Ошибка настройки прокси: {e}")
 
     bot = Bot(token=BOT_TOKEN, session=session)
+    await set_bot_commands(bot)
     dp = Dispatcher(storage=MemoryStorage())
 
     # Подключение обработчиков
