@@ -72,7 +72,7 @@ def format_main_menu_text(settings: dict) -> str:
     scale = settings.get("emoji_scale", 100)
 
     return (
-        f"{em(E.FIRE)} <b>STUDIO BANNER · 60 FPS MOTION</b>\n"
+        f"{em(E.FIRE)} <b>GIF THE MY BOT · 60 FPS MOTION</b>\n"
         f"<i>Генератор живых широкоформатных баннеров</i>\n\n"
         f"{em(E.LIGHTNING)} <b>Отправь мне:</b>\n"
         f"<blockquote>Стикер (WEBM/TGS), строку премиум эмодзи или ссылку на стикерпак.</blockquote>\n\n"
