@@ -52,11 +52,11 @@ async def process_media_render(message: Message, file_id: str, is_tgs: bool = Fa
             result_path = await render_banner(settings, input_path, OUTPUTS_DIR)
 
         caption = (
-            f"{em(E.CHECK, '✅')} <b>Баннер готов!</b>\n\n"
+            f"{em(E.CHECK)} <b>Баннер готов!</b>\n\n"
             f"<blockquote>"
-            f"↖ <b>Разрешение:</b> {settings.get('width', 1920)}×{settings.get('height', 530)} 60 FPS\n"
-            f"⛶ <b>Формат:</b> GIF\n"
-            f"❖ <b>Масштаб:</b> {settings.get('emoji_scale', 100)}%"
+            f"{em(E.RESIZE)} <b>Разрешение:</b> <code>{settings.get('width', 1920)}×{settings.get('height', 530)}</code> · <b>60 FPS</b>\n"
+            f"{em(E.MEDIA)} <b>Формат:</b> <code>GIF (MP4)</code>\n"
+            f"{em(E.APPS)} <b>Масштаб:</b> <code>{settings.get('emoji_scale', 100)}%</code>"
             f"</blockquote>"
         )
 
@@ -121,11 +121,11 @@ async def process_multi_emoji_render(message: Message, stickers: list):
         )
 
         caption = (
-            f"{em(E.CHECK, '✅')} <b>Составной баннер готов!</b>\n\n"
+            f"{em(E.CHECK)} <b>Составной баннер готов!</b>\n\n"
             f"<blockquote>"
-            f"↖ <b>Разрешение:</b> {settings.get('width', 1920)}×{settings.get('height', 530)} 60 FPS\n"
-            f"⛶ <b>Формат:</b> GIF\n"
-            f"✨ <b>Элементов:</b> {len(stickers)} · <b>Масштаб:</b> {settings.get('emoji_scale', 100)}%"
+            f"{em(E.RESIZE)} <b>Разрешение:</b> <code>{settings.get('width', 1920)}×{settings.get('height', 530)}</code> · <b>60 FPS</b>\n"
+            f"{em(E.MEDIA)} <b>Формат:</b> <code>GIF (MP4)</code>\n"
+            f"{em(E.SPARKLE)} <b>Элементов:</b> <code>{len(stickers)}</code> · <b>Масштаб:</b> <code>{settings.get('emoji_scale', 100)}%</code>"
             f"</blockquote>"
         )
 

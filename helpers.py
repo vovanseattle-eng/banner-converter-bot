@@ -72,17 +72,17 @@ def format_main_menu_text(settings: dict) -> str:
     scale = settings.get("emoji_scale", 100)
 
     return (
-        f"{em(E.FIRE, '🔥')} <b>Создан для топового оформления ботов\nor сайтов & каналов</b>\n\n"
-        f"⬆ <b>Отправь мне:</b>\n"
-        f"<blockquote>прем эмодзи — можно несколько or\n"
-        f"стикер, ссылку на пак emoji or sticker</blockquote>\n\n"
-        f"⌘ <b>Конфигурация:</b>\n"
+        f"{em(E.FIRE)} <b>STUDIO BANNER · 60 FPS MOTION</b>\n"
+        f"<i>Рендер широкоформатных живых медиа для ботов и каналов</i>\n\n"
+        f"{em(E.SEND)} <b>Входной поток:</b>\n"
+        f"<blockquote>Отправь стикер (WEBM/TGS), строку премиум эмодзи или ссылку на пак — бот соберёт 60 FPS баннер.</blockquote>\n\n"
+        f"{em(E.SETTINGS)} <b>Параметры сцены:</b>\n"
         f"<blockquote>"
-        f"🗡 <b>Цвет фона:</b> {bg_str}\n"
-        f"↖ <b>Разрешение:</b> {width}×{height} 60 FPS\n"
-        f"⛶ <b>Формат:</b> GIF\n"
-        f"🗡 <b>ЦветEmoji:</b> {recolor_str}\n"
-        f"❖ <b>3D Тень:</b> {shadow} · <b>Масштаб:</b> {scale}%\n"
-        f"✍️ <b>Вотермарка:</b> {wm_str}"
+        f"{em(E.BRUSH)} <b>Холст:</b> <code>{bg_str}</code>\n"
+        f"{em(E.RESIZE)} <b>Рендер:</b> <code>{width}×{height}</code> · <b>60 FPS</b>\n"
+        f"{em(E.MEDIA)} <b>Формат:</b> <code>GIF (MP4)</code>\n"
+        f"{em(E.DESIGN)} <b>Оттенок эмодзи:</b> <code>{recolor_str}</code>\n"
+        f"{em(E.APPS)} <b>3D Тень:</b> <code>{shadow}</code> · <b>Масштаб:</b> <code>{scale}%</code>\n"
+        f"{em(E.EDIT)} <b>Вотермарка:</b> <code>{wm_str}</code>"
         f"</blockquote>"
     )
