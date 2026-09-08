@@ -15,15 +15,15 @@ def get_main_menu_kb(settings: dict) -> InlineKeyboardMarkup:
         ],
         [
             InlineKeyboardButton(text="3D Фон", callback_data="menu:bg3d", icon_custom_emoji_id=E.APPS),
-            InlineKeyboardButton(text="ЦветEmoji", callback_data="menu:recolor", icon_custom_emoji_id=E.BRUSH),
+            InlineKeyboardButton(text="ЦветEmoji", callback_data="menu:recolor", icon_custom_emoji_id=E.DESIGN),
         ],
         [
             InlineKeyboardButton(text="Своя медиа", callback_data="menu:media", icon_custom_emoji_id=E.MEDIA),
             InlineKeyboardButton(text="Заметки", callback_data="menu:presets", icon_custom_emoji_id=E.FILE),
         ],
         [
-            InlineKeyboardButton(text="Вотермарка", callback_data="menu:watermark", icon_custom_emoji_id=E.EDIT),
-            InlineKeyboardButton(text="Размер эмодзи", callback_data="menu:scale", icon_custom_emoji_id=E.RESIZE),
+            InlineKeyboardButton(text="Водяной знак", callback_data="menu:watermark", icon_custom_emoji_id=E.EDIT),
+            InlineKeyboardButton(text="Размер эмодзи", callback_data="menu:scale", icon_custom_emoji_id=E.SCALE),
         ],
     ]
     return InlineKeyboardMarkup(inline_keyboard=kb)
@@ -216,7 +216,7 @@ def get_watermark_kb(has_wm: bool) -> InlineKeyboardMarkup:
         ],
     ]
     if has_wm:
-        kb.append([InlineKeyboardButton(text="Отключить вотермарку", callback_data="wm:clear", icon_custom_emoji_id=E.TRASH)])
+        kb.append([InlineKeyboardButton(text="Отключить водяной знак", callback_data="wm:clear", icon_custom_emoji_id=E.TRASH)])
     kb.append([InlineKeyboardButton(text="◁ Назад", callback_data="back_to_main", icon_custom_emoji_id=E.BACK)])
     return InlineKeyboardMarkup(inline_keyboard=kb)
 

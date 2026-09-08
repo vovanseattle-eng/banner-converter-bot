@@ -28,15 +28,15 @@ async def cb_watermark_menu(callback: CallbackQuery, state: FSMContext):
         }
         pos_str = pos_names.get(settings.get("watermark_pos"), "Снизу справа")
         text = (
-            f"{title(E.EDIT, 'Вотермарка')}\n\n"
+            f"{title(E.EDIT, 'Водяной знак')}\n\n"
             f"<blockquote>Текст: <code>{html.escape(wm)}</code>\n"
             f"Цвет: <code>#{settings.get('watermark_color', 'FFFFFF')}</code>\n"
             f"Позиция: {pos_str}</blockquote>"
         )
     else:
         text = (
-            f"{title(E.EDIT, 'Вотермарка')}\n\n"
-            f"<blockquote>Статус: <code>Выключена</code>\n"
+            f"{title(E.EDIT, 'Водяной знак')}\n\n"
+            f"<blockquote>Статус: <code>Выключен</code>\n"
             f"Укажи название или канал, чтобы включить подпись на баннерах.</blockquote>"
         )
 
@@ -48,7 +48,7 @@ async def cb_watermark_menu(callback: CallbackQuery, state: FSMContext):
 async def cb_wm_title(callback: CallbackQuery, state: FSMContext):
     await state.set_state(SettingsStates.waiting_wm_text)
     await callback.message.edit_text(
-        f"{title(E.EDIT, 'Введи текст вотермарки')} (до 30 символов):\n"
+        f"{title(E.EDIT, 'Введи текст водяного знака')} (до 30 символов):\n"
         "Например: <code>@my_channel</code> или имя проекта",
         parse_mode="HTML",
     )
@@ -62,7 +62,7 @@ async def msg_wm_title(message: Message, state: FSMContext):
     await state.clear()
     settings = await get_user_settings(message.from_user.id)
     await message.answer(
-        f"{em(E.CHECK)} <b>Вотермарка установлена:</b> <code>{val}</code>\n\n" + format_main_menu_text(settings),
+        f"{em(E.CHECK)} <b>Водяной знак установлен:</b> <code>{val}</code>\n\n" + format_main_menu_text(settings),
         reply_markup=get_main_menu_kb(settings),
         parse_mode="HTML",
     )
@@ -72,7 +72,7 @@ async def msg_wm_title(message: Message, state: FSMContext):
 async def cb_wm_color(callback: CallbackQuery, state: FSMContext):
     await state.set_state(SettingsStates.waiting_wm_color)
     text = (
-        f"{title(E.BRUSH, 'Цвет вотермарки')}\n\n"
+        f"{title(E.BRUSH, 'Цвет водяного знака')}\n\n"
         "Выбери оттенок в 1 клик по вкладкам ниже, либо напиши название (например: <code>белый</code>, <code>золото</code>, <code>серебро</code>).\n\n"
         "Также можно открыть спектр-палитру или отправить HEX-код:"
     )
@@ -89,7 +89,7 @@ async def cb_set_wmcolor(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(
         format_main_menu_text(settings), reply_markup=get_main_menu_kb(settings), parse_mode="HTML"
     )
-    await callback.answer(f"Цвет вотермарки: #{hex_color}")
+    await callback.answer(f"Цвет водяного знака: #{hex_color}")
 
 
 @router.message(SettingsStates.waiting_wm_color)
@@ -100,7 +100,7 @@ async def msg_wm_color(message: Message, state: FSMContext):
         await state.clear()
         settings = await get_user_settings(message.from_user.id)
         await message.answer(
-            f"{em(E.CHECK)} <b>Цвет вотермарки:</b> <code>#{hex_val}</code>\n\n" + format_main_menu_text(settings),
+            f"{em(E.CHECK)} <b>Цвет водяного знака:</b> <code>#{hex_val}</code>\n\n" + format_main_menu_text(settings),
             reply_markup=get_main_menu_kb(settings),
             parse_mode="HTML",
         )
@@ -122,7 +122,7 @@ async def cb_wm_pos(callback: CallbackQuery):
     settings["watermark_pos"] = next_pos
     wm = settings.get("watermark_text")
     text = (
-        f"{title(E.EDIT, 'Вотермарка активна:')} <code>{wm}</code>\n"
+        f"{title(E.EDIT, 'Водяной знак активен:')} <code>{wm}</code>\n"
         f"Цвет: <code>#{settings.get('watermark_color', 'FFFFFF')}</code>\n"
         f"Позиция: <b>{next_pos}</b>"
     )
@@ -137,4 +137,4 @@ async def cb_wm_clear(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(
         format_main_menu_text(settings), reply_markup=get_main_menu_kb(settings), parse_mode="HTML"
     )
-    await callback.answer("Вотермарка отключена")
+    await callback.answer("Водяной знак отключен")
