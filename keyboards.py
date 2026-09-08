@@ -121,7 +121,7 @@ def build_color_picker_kb(target: str, active_cat: str = "classic", has_extra: b
 
     back_target = "menu:watermark" if target == "wm" else "back_to_main"
     extra_rows.append([
-        InlineKeyboardButton(text="◁ Назад", callback_data=back_target, icon_custom_emoji_id=E.BACK)
+        InlineKeyboardButton(text="Назад", callback_data=back_target)
     ])
 
     return InlineKeyboardMarkup(inline_keyboard=[tabs_row, *color_rows, *extra_rows])
@@ -144,7 +144,7 @@ def get_resolution_kb() -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(text="1080x1920 (9:16)", callback_data="set_res:1080x1920"),
         ],
-        [InlineKeyboardButton(text="◁ Назад", callback_data="back_to_main", icon_custom_emoji_id=E.BACK)],
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_main")],
     ]
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
@@ -174,7 +174,7 @@ def get_bg3d_kb(current_style: str, shadow_on: bool) -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(text=shadow_text, callback_data="toggle_shadow", icon_custom_emoji_id=E.CHECK if shadow_on else E.CROSS),
         ],
-        [InlineKeyboardButton(text="◁ Назад", callback_data="back_to_main", icon_custom_emoji_id=E.BACK)],
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_main")],
     ]
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
@@ -189,7 +189,7 @@ def get_media_kb(has_custom: bool) -> InlineKeyboardMarkup:
     ]
     if has_custom:
         kb.append([InlineKeyboardButton(text="Сбросить свой фон", callback_data="reset_media", icon_custom_emoji_id=E.TRASH)])
-    kb.append([InlineKeyboardButton(text="◁ Назад", callback_data="back_to_main", icon_custom_emoji_id=E.BACK)])
+    kb.append([InlineKeyboardButton(text="Назад", callback_data="back_to_main")])
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 
@@ -201,7 +201,7 @@ def get_presets_kb(presets: list) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="Удалить", callback_data=f"del_preset:{p['id']}", icon_custom_emoji_id=E.CROSS),
         ])
     kb.append([InlineKeyboardButton(text="Новая заметка", callback_data="new_preset", icon_custom_emoji_id=E.EDIT)])
-    kb.append([InlineKeyboardButton(text="◁ Назад", callback_data="back_to_main", icon_custom_emoji_id=E.BACK)])
+    kb.append([InlineKeyboardButton(text="Назад", callback_data="back_to_main")])
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 
@@ -217,7 +217,7 @@ def get_watermark_kb(has_wm: bool) -> InlineKeyboardMarkup:
     ]
     if has_wm:
         kb.append([InlineKeyboardButton(text="Отключить водяной знак", callback_data="wm:clear", icon_custom_emoji_id=E.TRASH)])
-    kb.append([InlineKeyboardButton(text="◁ Назад", callback_data="back_to_main", icon_custom_emoji_id=E.BACK)])
+    kb.append([InlineKeyboardButton(text="Назад", callback_data="back_to_main")])
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 
@@ -237,7 +237,7 @@ def get_scale_kb(current_scale: int) -> InlineKeyboardMarkup:
         row2.append(InlineKeyboardButton(text=label, callback_data=f"set_scale:{s}"))
 
     return InlineKeyboardMarkup(
-        inline_keyboard=[row1, row2, [InlineKeyboardButton(text="◁ Назад", callback_data="back_to_main", icon_custom_emoji_id=E.BACK)]]
+        inline_keyboard=[row1, row2, [InlineKeyboardButton(text="Назад", callback_data="back_to_main")]]
     )
 
 
