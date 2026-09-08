@@ -1,0 +1,24 @@
+# Environment variables & secrets
+.env
+.env.*
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Data and SQLite
+data/*.db
+*.db
+*.sqlite3
+
+# Generated outputs
+outputs/
+renders/
+test_*/
+*.log
+
+# Vercel
+.vercel
+color-picker-webapp/.vercel

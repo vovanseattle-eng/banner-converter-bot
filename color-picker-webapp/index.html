@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Палитра Цветов</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      background-color: #0b0b0d;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .header h1 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .header p {
+      font-size: 13px;
+      color: #8e8e93;
+      margin-top: 4px;
+    }
+
+    /* Preview Card */
+    .preview-card {
+      width: 100%;
+      max-width: 360px;
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .preview-box {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.15);
+      background-color: #ffffff;
+      flex-shrink: 0;
+      transition: background-color 0.1s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    .preview-info {
+      flex: 1;
+    }
+    .hex-label {
+      font-size: 11px;
+      color: #a1a1aa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+    .hex-value {
+      font-size: 20px;
+      font-weight: 800;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      letter-spacing: 1px;
+    }
+    .copy-btn {
+      background: #ffffff;
+      color: #000000;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.1s ease, background 0.2s ease;
+    }
+    .copy-btn:active {
+      transform: scale(0.96);
+      background: #e4e4e7;
+    }
+
+    /* Canvas Picker */
+    .picker-container {
+      width: 100%;
+      max-width: 360px;
+      margin-bottom: 16px;
+    }
+    #colorCanvas {
+      width: 100%;
+      height: 180px;
+      border-radius: 14px;
+      border: 1px solid #27272a;
+      cursor: crosshair;
+      display: block;
+      touch-action: none;
+    }
+    .hue-container {
+      margin-top: 12px;
+      position: relative;
+    }
+    #hueCanvas {
+      width: 100%;
+      height: 24px;
+      border-radius: 12px;
+      border: 1px solid #27272a;
+      cursor: pointer;
+      display: block;
+      touch-action: none;
+    }
+
+    /* Quick Swatches */
+    .swatches-section {
+      width: 100%;
+      max-width: 360px;
+    }
+    .swatches-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #71717a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .swatches-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .swatch {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .swatch:active {
+      transform: scale(0.9);
+    }
+    .swatch.active {
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 10px rgba(255,255,255,0.4);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      background: #ffffff;
+      color: #000000;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+      pointer-events: none;
+    }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Выбор цвета</h1>
+    <p>Нажми на любой цвет или выбери оттенок</p>
+  </div>
+
+  <div class="preview-card">
+    <div class="preview-box" id="previewBox"></div>
+    <div class="preview-info">
+      <div class="hex-label">HEX код</div>
+      <div class="hex-value" id="hexValue">#FFFFFF</div>
+    </div>
+    <button class="copy-btn" id="copyBtn">Скопировать</button>
+  </div>
+
+  <div class="picker-container">
+    <canvas id="colorCanvas"></canvas>
+    <div class="hue-container">
+      <canvas id="hueCanvas"></canvas>
+    </div>
+  </div>
+
+  <div class="swatches-section">
+    <div class="swatches-title">Монохром & Классика</div>
+    <div class="swatches-grid" id="monoSwatches"></div>
+
+    <div class="swatches-title">Яркие & Неон</div>
+    <div class="swatches-grid" id="vibrantSwatches"></div>
+
+    <div class="swatches-title">Пастель & Эстетика</div>
+    <div class="swatches-grid" id="pastelSwatches"></div>
+  </div>
+
+  <div class="toast" id="toast">Скопировано! Вставь в чат бота</div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.expand();
+      tg.enableClosingConfirmation();
+    }
+
+    let currentHue = 0;
+    let currentColor = '#FFFFFF';
+
+    const colorCanvas = document.getElementById('colorCanvas');
+    const colorCtx = colorCanvas.getContext('2d');
+    const hueCanvas = document.getElementById('hueCanvas');
+    const hueCtx = hueCanvas.getContext('2d');
+
+    const previewBox = document.getElementById('previewBox');
+    const hexValue = document.getElementById('hexValue');
+    const copyBtn = document.getElementById('copyBtn');
+    const toast = document.getElementById('toast');
+
+    function resizeCanvases() {
+      const rect = colorCanvas.getBoundingClientRect();
+      colorCanvas.width = rect.width * window.devicePixelRatio;
+      colorCanvas.height = rect.height * window.devicePixelRatio;
+      colorCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      const hueRect = hueCanvas.getBoundingClientRect();
+      hueCanvas.width = hueRect.width * window.devicePixelRatio;
+      hueCanvas.height = hueRect.height * window.devicePixelRatio;
+      hueCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      renderHue();
+      renderColorBox();
+    }
+
+    function renderHue() {
+      const w = hueCanvas.getBoundingClientRect().width;
+      const h = hueCanvas.getBoundingClientRect().height;
+      const grad = hueCtx.createLinearGradient(0, 0, w, 0);
+      for (let i = 0; i <= 360; i += 30) {
+        grad.addColorStop(i / 360, `hsl(${i}, 100%, 50%)`);
+      }
+      hueCtx.fillStyle = grad;
+      hueCtx.fillRect(0, 0, w, h);
+    }
+
+    function renderColorBox() {
+      const w = colorCanvas.getBoundingClientRect().width;
+      const h = colorCanvas.getBoundingClientRect().height;
+
+      // Base color from hue
+      colorCtx.fillStyle = `hsl(${currentHue}, 100%, 50%)`;
+      colorCtx.fillRect(0, 0, w, h);
+
+      // White gradient horizontal
+      const whiteGrad = colorCtx.createLinearGradient(0, 0, w, 0);
+      whiteGrad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+      whiteGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      colorCtx.fillStyle = whiteGrad;
+      colorCtx.fillRect(0, 0, w, h);
+
+      // Black gradient vertical
+      const blackGrad = colorCtx.createLinearGradient(0, 0, 0, h);
+      blackGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      blackGrad.addColorStop(1, 'rgba(0, 0, 0, 1)');
+      colorCtx.fillStyle = blackGrad;
+      colorCtx.fillRect(0, 0, w, h);
+    }
+
+    function rgbToHex(r, g, b) {
+      return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0').toUpperCase()).join('');
+    }
+
+    function updateColor(hex, triggerFeedback = true) {
+      currentColor = hex;
+      previewBox.style.backgroundColor = hex;
+      hexValue.textContent = hex;
+
+      if (triggerFeedback && tg?.HapticFeedback) {
+        tg.HapticFeedback.selectionChanged();
+      }
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      if (tg?.HapticFeedback) {
+        tg.HapticFeedback.notificationOccurred('success');
+      }
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    async function copyToClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast(`Скопировано: ${text}`);
+      } catch (err) {
+        const input = document.createElement('input');
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast(`Скопировано: ${text}`);
+      }
+    }
+
+    copyBtn.addEventListener('click', () => {
+      copyToClipboard(currentColor);
+    });
+
+    // Swatches presets
+    const monoColors = ['#000000', '#121214', '#27272A', '#52525B', '#A1A1AA', '#FFFFFF'];
+    const vibrantColors = ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#00F0FF', '#7000FF'];
+    const pastelColors = ['#FFB5A7', '#FCD5CE', '#D8E2DC', '#C8B6FF', '#B8C0FF', '#E7C6FF'];
+
+    function createSwatches(containerId, colors) {
+      const container = document.getElementById(containerId);
+      colors.forEach(col => {
+        const div = document.createElement('div');
+        div.className = 'swatch';
+        div.style.backgroundColor = col;
+        div.addEventListener('click', () => {
+          updateColor(col);
+          copyToClipboard(col);
+        });
+        container.appendChild(div);
+      });
+    }
+
+    createSwatches('monoSwatches', monoColors);
+    createSwatches('vibrantSwatches', vibrantColors);
+    createSwatches('pastelSwatches', pastelColors);
+
+    // Hue drag / click
+    function handleHue(e) {
+      const rect = hueCanvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      let x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+      currentHue = Math.round((x / rect.width) * 360);
+      renderColorBox();
+    }
+
+    let isHueDragging = false;
+    hueCanvas.addEventListener('mousedown', e => { isHueDragging = true; handleHue(e); });
+    hueCanvas.addEventListener('touchstart', e => { isHueDragging = true; handleHue(e); }, { passive: false });
+
+    // Color Canvas drag / click
+    function handleColorPick(e) {
+      const rect = colorCanvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      let x = Math.max(0, Math.min(rect.width - 1, clientX - rect.left));
+      let y = Math.max(0, Math.min(rect.height - 1, clientY - rect.top));
+
+      const px = colorCtx.getImageData(x * window.devicePixelRatio, y * window.devicePixelRatio, 1, 1).data;
+      const hex = rgbToHex(px[0], px[1], px[2]);
+      updateColor(hex);
+    }
+
+    let isColorDragging = false;
+    colorCanvas.addEventListener('mousedown', e => { isColorDragging = true; handleColorPick(e); });
+    colorCanvas.addEventListener('touchstart', e => { isColorDragging = true; handleColorPick(e); }, { passive: false });
+
+    window.addEventListener('mousemove', e => {
+      if (isHueDragging) handleHue(e);
+      if (isColorDragging) handleColorPick(e);
+    });
+    window.addEventListener('touchmove', e => {
+      if (isHueDragging) handleHue(e);
+      if (isColorDragging) handleColorPick(e);
+    }, { passive: false });
+
+    window.addEventListener('mouseup', () => { isHueDragging = false; isColorDragging = false; });
+    window.addEventListener('touchend', () => { isHueDragging = false; isColorDragging = false; });
+
+    window.addEventListener('resize', resizeCanvases);
+    setTimeout(resizeCanvases, 50);
+  </script>
+</body>
+</html>
