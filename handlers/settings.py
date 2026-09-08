@@ -44,10 +44,12 @@ async def cb_palette_category(callback: CallbackQuery):
 @router.callback_query(F.data == "menu:color")
 async def cb_color_menu(callback: CallbackQuery, state: FSMContext):
     await state.set_state(SettingsStates.waiting_bg_color)
+    settings = await get_user_settings(callback.from_user.id)
+    curr_color = f"#{settings.get('bg_color', '000000')}"
     text = (
         f"{title(E.BRUSH, 'Цвет фона')}\n\n"
-        "Выбери оттенок в 1 клик по вкладкам ниже, либо напиши название (например: <code>синий</code>, <code>красный</code>, <code>черный</code>, <code>золото</code>).\n\n"
-        "Также можно открыть спектр-палитру или отправить HEX-код:"
+        f"<blockquote>Текущий: <code>{curr_color}</code>\n"
+        f"Выбери оттенок в 1 клик по вкладкам ниже или отправь HEX / название (синий, графит, серебро, золото):</blockquote>"
     )
     await callback.message.edit_text(text, reply_markup=get_color_kb(), parse_mode="HTML")
     await callback.answer()
@@ -90,9 +92,12 @@ async def msg_bg_color(message: Message, state: FSMContext):
 @router.callback_query(F.data == "menu:resolution")
 async def cb_res_menu(callback: CallbackQuery, state: FSMContext):
     await state.set_state(SettingsStates.waiting_resolution)
+    settings = await get_user_settings(callback.from_user.id)
+    curr_res = f"{settings.get('width', 1920)}×{settings.get('height', 530)}"
     text = (
-        f"{title(E.RESIZE, 'Выбери или введи разрешение')} (Ширина x Высота):\n"
-        "Например: <code>1920x530</code>"
+        f"{title(E.RESIZE, 'Разрешение баннера')}\n\n"
+        f"<blockquote>Текущее: <code>{curr_res}</code> · <b>60 FPS</b>\n"
+        f"Выбери готовый формат ниже или отправь в чат (например <code>1920x530</code>):</blockquote>"
     )
     await callback.message.edit_text(text, reply_markup=get_resolution_kb(), parse_mode="HTML")
     await callback.answer()
@@ -137,10 +142,11 @@ async def cb_bg3d_menu(callback: CallbackQuery):
     settings = await get_user_settings(callback.from_user.id)
     text = (
         f"{title(E.APPS, '3D Фон и Стили сцены')}\n\n"
-        "• <b>Сплошной цвет</b>: классический монохромный фон\n"
-        "• <b>Студийный шёлк</b>: 60 FPS текучий рельеф жидкого металла\n"
-        "• <b>3D Сетка</b>: перспективная нео-бруталистская сетка\n"
-        "• <b>3D Тень</b>: эффект парения эмодзи над холстом"
+        f"<blockquote>• <b>Сплошной цвет</b>: классический монохром\n"
+        f"• <b>Студийный шёлк</b>: текучий рельеф жидкого металла\n"
+        f"• <b>3D Сетка</b>: нео-бруталистская сетка\n"
+        f"• <b>Капли дождя</b>: кинематографичный дождь\n"
+        f"• <b>3D Тень</b>: эффект парения эмодзи над холстом</blockquote>"
     )
     await callback.message.edit_text(
         text, reply_markup=get_bg3d_kb(settings.get("bg_style", "solid"), bool(settings.get("shadow_3d", 1))), parse_mode="HTML"
@@ -190,8 +196,8 @@ async def cb_scale_menu(callback: CallbackQuery):
     curr = settings.get("emoji_scale", 100)
     text = (
         f"{title(E.RESIZE, 'Размер эмодзи')}\n\n"
-        f"Текущий масштаб: <b>{curr}%</b>\n"
-        f"Выбери размер относительно высоты холста:"
+        f"<blockquote>Текущий масштаб: <code>{curr}%</code>\n"
+        f"Выбери размер относительно высоты холста:</blockquote>"
     )
     await callback.message.edit_text(text, reply_markup=get_scale_kb(curr), parse_mode="HTML")
     await callback.answer()

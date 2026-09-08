@@ -17,9 +17,11 @@ async def cb_media_menu(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     settings = await get_user_settings(callback.from_user.id)
     has_custom = settings.get("bg_style") == "custom" and bool(settings.get("custom_media_path"))
+    status = "Загружено" if has_custom else "Не установлено"
     text = (
-        f"{title(E.PHOTO, 'Своя медиа — для рендера')}\n\n"
-        "Загрузи видео или изображение, которое будет использоваться в качестве фона баннера."
+        f"{title(E.MEDIA, 'Своя медиа для фона')}\n\n"
+        f"<blockquote>Статус: <code>{status}</code>\n"
+        f"Загрузи видео (MP4/WEBM) или изображение для использования в качестве фона.</blockquote>"
     )
     await callback.message.edit_text(text, reply_markup=get_media_kb(has_custom), parse_mode="HTML")
     await callback.answer()

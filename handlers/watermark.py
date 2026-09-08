@@ -1,3 +1,4 @@
+import html
 import re
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
@@ -18,13 +19,26 @@ async def cb_watermark_menu(callback: CallbackQuery, state: FSMContext):
     settings = await get_user_settings(callback.from_user.id)
     wm = settings.get("watermark_text")
     if wm:
+        pos_names = {
+            "bottom_right": "Снизу справа",
+            "bottom_left": "Снизу слева",
+            "top_right": "Сверху справа",
+            "top_left": "Сверху слева",
+            "center": "По центру",
+        }
+        pos_str = pos_names.get(settings.get("watermark_pos"), "Снизу справа")
         text = (
-            f"{title(E.EDIT, 'Вотермарка активна:')} <code>{wm}</code>\n"
+            f"{title(E.EDIT, 'Вотермарка')}\n\n"
+            f"<blockquote>Текст: <code>{html.escape(wm)}</code>\n"
             f"Цвет: <code>#{settings.get('watermark_color', 'FFFFFF')}</code>\n"
-            f"Позиция: {settings.get('watermark_pos', 'bottom_right')}"
+            f"Позиция: {pos_str}</blockquote>"
         )
     else:
-        text = f"{em(E.INFO)} <b>Вотермарка не задана.</b> Создайте название чтобы включить."
+        text = (
+            f"{title(E.EDIT, 'Вотермарка')}\n\n"
+            f"<blockquote>Статус: <code>Выключена</code>\n"
+            f"Укажи название или канал, чтобы включить подпись на баннерах.</blockquote>"
+        )
 
     await callback.message.edit_text(text, reply_markup=get_watermark_kb(bool(wm)), parse_mode="HTML")
     await callback.answer()

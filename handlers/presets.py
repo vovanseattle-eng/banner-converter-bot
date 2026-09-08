@@ -22,8 +22,8 @@ async def cb_presets_menu(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     presets = await get_user_presets(callback.from_user.id)
     text = (
-        f"{title(E.FILE, 'Заметки (Пресеты настроек)')}\n\n"
-        "Сохраняй готовые наборы параметров, чтобы применять их в один клик."
+        f"{title(E.FILE, 'Заметки (Пресеты)')}\n\n"
+        f"<blockquote>Сохраняй готовые конфигурации, чтобы применять их в один клик.</blockquote>"
     )
     await callback.message.edit_text(text, reply_markup=get_presets_kb(presets), parse_mode="HTML")
     await callback.answer()

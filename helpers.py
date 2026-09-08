@@ -1,3 +1,4 @@
+import html
 import re
 from emoji import E, em
 
@@ -44,7 +45,6 @@ def parse_color_input(text: str) -> str | None:
     return None
 
 
-
 def format_main_menu_text(settings: dict) -> str:
     bg_style_map = {
         "solid": f"#{settings.get('bg_color', '000000')}",
@@ -58,21 +58,31 @@ def format_main_menu_text(settings: dict) -> str:
         "rain": "Капли дождя",
         "custom": "Своя медиа",
     }
-    bg_str = bg_style_map.get(settings.get("bg_style", "solid"), "Сплошной")
+    bg_str = html.escape(bg_style_map.get(settings.get("bg_style", "solid"), "Сплошной"))
 
     recolor = settings.get("emoji_color")
-    recolor_str = f"#{recolor}" if recolor else "Оригинал"
+    recolor_str = html.escape(f"#{recolor}" if recolor else "Оригинал")
 
     shadow = "Вкл" if settings.get("shadow_3d", 1) else "Выкл"
     wm = settings.get("watermark_text")
-    wm_str = wm if wm else "Выкл"
+    wm_str = html.escape(wm) if wm else "Выкл"
+
+    width = settings.get("width", 1920)
+    height = settings.get("height", 530)
+    scale = settings.get("emoji_scale", 100)
 
     return (
-        f"{em(E.BRUSH)} <b>Цвет фона:</b> {bg_str}\n"
-        f"{em(E.RESIZE)} <b>Разрешение:</b> {settings.get('width', 1920)}x{settings.get('height', 530)}\n"
-        f"{em(E.RESIZE)} <b>Размер эмодзи:</b> {settings.get('emoji_scale', 100)}%\n"
-        f"{em(E.BRUSH)} <b>ЦветEmoji:</b> {recolor_str}\n"
-        f"{em(E.APPS)} <b>3D Тень:</b> {shadow}\n"
-        f"{em(E.EDIT)} <b>Вотермарка:</b> {wm_str}\n\n"
-        f"<b>Отправь мне emoji или sticker</b> (можно паком или ссылку)"
+        f"{em(E.FIRE, '⚡')} <b>Создан для топового оформления ботов\nor сайтов & каналов</b>\n\n"
+        f"{em(E.FORWARD, '⬆')} <b>Отправь мне:</b>\n"
+        f"<blockquote>прем эмодзи — можно несколько or\n"
+        f"стикер, ссылку на пак emoji or sticker</blockquote>\n\n"
+        f"⌘ <b>Конфигурация:</b>\n"
+        f"<blockquote>"
+        f"{em(E.BRUSH, '🗡')} <b>Цвет фона:</b> {bg_str}\n"
+        f"{em(E.RESIZE, '↖')} <b>Разрешение:</b> {width}×{height} 60 FPS\n"
+        f"{em(E.MEDIA, '⛶')} <b>Формат:</b> GIF\n"
+        f"{em(E.DESIGN, '🗡')} <b>ЦветEmoji:</b> {recolor_str}\n"
+        f"{em(E.APPS, '❖')} <b>3D Тень:</b> {shadow} · <b>Масштаб:</b> {scale}%\n"
+        f"{em(E.EDIT, '✍️')} <b>Вотермарка:</b> {wm_str}"
+        f"</blockquote>"
     )

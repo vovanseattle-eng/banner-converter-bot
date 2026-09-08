@@ -17,10 +17,12 @@ async def cb_recolor_menu(callback: CallbackQuery, state: FSMContext):
     await state.set_state(SettingsStates.waiting_recolor)
     settings = await get_user_settings(callback.from_user.id)
     has_color = bool(settings.get("emoji_color"))
+    recolor = settings.get("emoji_color")
+    recolor_str = f"#{recolor}" if recolor else "Оригинал"
     text = (
         f"{title(E.BRUSH, 'Цвет Emoji / Стикера')}\n\n"
-        "Выбери оттенок в 1 клик по вкладкам ниже, либо напиши название (например: <code>белый</code>, <code>серебро</code>, <code>золото</code>, <code>неон</code>).\n\n"
-        "Также можно открыть спектр-палитру или отправить HEX-код:"
+        f"<blockquote>Текущий: <code>{recolor_str}</code>\n"
+        f"Выбери оттенок в 1 клик по вкладкам ниже или напиши в чат (сталь, серебро, золото, неон):</blockquote>"
     )
     await callback.message.edit_text(text, reply_markup=get_recolor_kb(has_color), parse_mode="HTML")
     await callback.answer()
