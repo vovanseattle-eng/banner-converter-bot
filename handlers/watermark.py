@@ -6,9 +6,10 @@ from aiogram.fsm.context import FSMContext
 
 from database import get_user_settings, update_user_field
 from keyboards import get_watermark_kb, get_main_menu_kb, get_wm_color_kb
-from helpers import format_main_menu_text, parse_color_input
+from helpers import format_main_menu_text, parse_color_input, show_or_edit_banner
 from states import SettingsStates
 from emoji import E, em, title
+import config
 
 router = Router()
 
@@ -40,7 +41,13 @@ async def cb_watermark_menu(callback: CallbackQuery, state: FSMContext):
             f"Укажи название или канал, чтобы включить подпись на баннерах.</blockquote>"
         )
 
-    await callback.message.edit_text(text, reply_markup=get_watermark_kb(bool(wm)), parse_mode="HTML")
+    await show_or_edit_banner(
+        event=callback,
+        banner_path=config.BANNER_SETTINGS_PATH,
+        cache_key="menu_settings",
+        caption=text,
+        reply_markup=get_watermark_kb(bool(wm)),
+    )
     await callback.answer()
 
 
@@ -61,10 +68,12 @@ async def msg_wm_title(message: Message, state: FSMContext):
     await update_user_field(message.from_user.id, "watermark_text", val)
     await state.clear()
     settings = await get_user_settings(message.from_user.id)
-    await message.answer(
-        f"{em(E.CHECK)} <b>Водяной знак установлен:</b> <code>{val}</code>\n\n" + format_main_menu_text(settings),
+    await show_or_edit_banner(
+        event=message,
+        banner_path=config.BANNER_MENU_PATH,
+        cache_key="menu_main",
+        caption=f"{em(E.CHECK)} <b>Водяной знак установлен:</b> <code>{val}</code>\n\n" + format_main_menu_text(settings),
         reply_markup=get_main_menu_kb(settings),
-        parse_mode="HTML",
     )
 
 
@@ -76,7 +85,13 @@ async def cb_wm_color(callback: CallbackQuery, state: FSMContext):
         "Выбери оттенок в 1 клик по вкладкам ниже, либо напиши название (например: <code>белый</code>, <code>золото</code>, <code>серебро</code>).\n\n"
         "Также можно открыть спектр-палитру или отправить HEX-код:"
     )
-    await callback.message.edit_text(text, reply_markup=get_wm_color_kb(), parse_mode="HTML")
+    await show_or_edit_banner(
+        event=callback,
+        banner_path=config.BANNER_COLOR_PATH,
+        cache_key="menu_color",
+        caption=text,
+        reply_markup=get_wm_color_kb(),
+    )
     await callback.answer()
 
 
@@ -86,8 +101,12 @@ async def cb_set_wmcolor(callback: CallbackQuery, state: FSMContext):
     await update_user_field(callback.from_user.id, "watermark_color", hex_color)
     await state.clear()
     settings = await get_user_settings(callback.from_user.id)
-    await callback.message.edit_text(
-        format_main_menu_text(settings), reply_markup=get_main_menu_kb(settings), parse_mode="HTML"
+    await show_or_edit_banner(
+        event=callback,
+        banner_path=config.BANNER_MENU_PATH,
+        cache_key="menu_main",
+        caption=format_main_menu_text(settings),
+        reply_markup=get_main_menu_kb(settings),
     )
     await callback.answer(f"Цвет водяного знака: #{hex_color}")
 
@@ -99,10 +118,12 @@ async def msg_wm_color(message: Message, state: FSMContext):
         await update_user_field(message.from_user.id, "watermark_color", hex_val)
         await state.clear()
         settings = await get_user_settings(message.from_user.id)
-        await message.answer(
-            f"{em(E.CHECK)} <b>Цвет водяного знака:</b> <code>#{hex_val}</code>\n\n" + format_main_menu_text(settings),
+        await show_or_edit_banner(
+            event=message,
+            banner_path=config.BANNER_MENU_PATH,
+            cache_key="menu_main",
+            caption=f"{em(E.CHECK)} <b>Цвет водяного знака:</b> <code>#{hex_val}</code>\n\n" + format_main_menu_text(settings),
             reply_markup=get_main_menu_kb(settings),
-            parse_mode="HTML",
         )
     else:
         await message.answer(
@@ -126,7 +147,7 @@ async def cb_wm_pos(callback: CallbackQuery):
         f"Цвет: <code>#{settings.get('watermark_color', 'FFFFFF')}</code>\n"
         f"Позиция: <b>{next_pos}</b>"
     )
-    await callback.message.edit_text(text, reply_markup=get_watermark_kb(bool(wm)), parse_mode="HTML")
+    await callback.message.edit_caption(caption=text, reply_markup=get_watermark_kb(bool(wm)), parse_mode="HTML")
 
 
 @router.callback_query(F.data == "wm:clear")
@@ -134,7 +155,11 @@ async def cb_wm_clear(callback: CallbackQuery, state: FSMContext):
     await update_user_field(callback.from_user.id, "watermark_text", None)
     await state.clear()
     settings = await get_user_settings(callback.from_user.id)
-    await callback.message.edit_text(
-        format_main_menu_text(settings), reply_markup=get_main_menu_kb(settings), parse_mode="HTML"
+    await show_or_edit_banner(
+        event=callback,
+        banner_path=config.BANNER_MENU_PATH,
+        cache_key="menu_main",
+        caption=format_main_menu_text(settings),
+        reply_markup=get_main_menu_kb(settings),
     )
     await callback.answer("Водяной знак отключен")

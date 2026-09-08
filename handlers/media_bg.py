@@ -5,9 +5,10 @@ from aiogram.fsm.context import FSMContext
 
 from database import get_user_settings, update_user_field
 from keyboards import get_media_kb, get_main_menu_kb
-from helpers import format_main_menu_text
+from helpers import format_main_menu_text, show_or_edit_banner
 from states import SettingsStates
 from emoji import E, em, title
+import config
 
 router = Router()
 
@@ -23,7 +24,13 @@ async def cb_media_menu(callback: CallbackQuery, state: FSMContext):
         f"<blockquote>Статус: <code>{status}</code>\n"
         f"Загрузи видео (MP4/WEBM) или изображение для использования в качестве фона.</blockquote>"
     )
-    await callback.message.edit_text(text, reply_markup=get_media_kb(has_custom), parse_mode="HTML")
+    await show_or_edit_banner(
+        event=callback,
+        banner_path=config.BANNER_COLOR_PATH,
+        cache_key="menu_color",
+        caption=text,
+        reply_markup=get_media_kb(has_custom),
+    )
     await callback.answer()
 
 
@@ -72,10 +79,12 @@ async def msg_custom_media(message: Message, state: FSMContext):
     await state.clear()
 
     settings = await get_user_settings(message.from_user.id)
-    await message.answer(
-        f"{em(E.CHECK)} <b>Медиа успешно установлено в качестве фона!</b>\n\n" + format_main_menu_text(settings),
+    await show_or_edit_banner(
+        event=message,
+        banner_path=config.BANNER_MENU_PATH,
+        cache_key="menu_main",
+        caption=f"{em(E.CHECK)} <b>Медиа успешно установлено в качестве фона!</b>\n\n" + format_main_menu_text(settings),
         reply_markup=get_main_menu_kb(settings),
-        parse_mode="HTML",
     )
 
 
@@ -84,9 +93,11 @@ async def cb_reset_media(callback: CallbackQuery):
     await update_user_field(callback.from_user.id, "bg_style", "solid")
     await update_user_field(callback.from_user.id, "custom_media_path", None)
     settings = await get_user_settings(callback.from_user.id)
-    await callback.message.edit_text(
-        f"{em(E.CHECK)} <b>Пользовательский фон сброшен на сплошной цвет.</b>\n\n" + format_main_menu_text(settings),
+    await show_or_edit_banner(
+        event=callback,
+        banner_path=config.BANNER_MENU_PATH,
+        cache_key="menu_main",
+        caption=f"{em(E.CHECK)} <b>Пользовательский фон сброшен на сплошной цвет.</b>\n\n" + format_main_menu_text(settings),
         reply_markup=get_main_menu_kb(settings),
-        parse_mode="HTML",
     )
     await callback.answer("Фон сброшен")

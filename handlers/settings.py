@@ -13,9 +13,10 @@ from keyboards import (
     get_scale_kb,
     get_main_menu_kb,
 )
-from helpers import format_main_menu_text, parse_color_input
+from helpers import format_main_menu_text, parse_color_input, show_or_edit_banner
 from states import SettingsStates
 from emoji import E, em, title
+import config
 
 router = Router()
 
@@ -51,7 +52,13 @@ async def cb_color_menu(callback: CallbackQuery, state: FSMContext):
         f"<blockquote>Текущий: <code>{curr_color}</code>\n"
         f"Выбери оттенок в 1 клик по вкладкам ниже или отправь HEX / название (синий, графит, серебро, золото):</blockquote>"
     )
-    await callback.message.edit_text(text, reply_markup=get_color_kb(), parse_mode="HTML")
+    await show_or_edit_banner(
+        event=callback,
+        banner_path=config.BANNER_COLOR_PATH,
+        cache_key="menu_color",
+        caption=text,
+        reply_markup=get_color_kb(),
+    )
     await callback.answer()
 
 
@@ -62,8 +69,12 @@ async def cb_set_color(callback: CallbackQuery, state: FSMContext):
     await update_user_field(callback.from_user.id, "bg_style", "solid")
     await state.clear()
     settings = await get_user_settings(callback.from_user.id)
-    await callback.message.edit_text(
-        format_main_menu_text(settings), reply_markup=get_main_menu_kb(settings), parse_mode="HTML"
+    await show_or_edit_banner(
+        event=callback,
+        banner_path=config.BANNER_MENU_PATH,
+        cache_key="menu_main",
+        caption=format_main_menu_text(settings),
+        reply_markup=get_main_menu_kb(settings),
     )
     await callback.answer(f"Цвет фона: #{hex_color}")
 
@@ -76,10 +87,12 @@ async def msg_bg_color(message: Message, state: FSMContext):
         await update_user_field(message.from_user.id, "bg_style", "solid")
         await state.clear()
         settings = await get_user_settings(message.from_user.id)
-        await message.answer(
-            f"{em(E.CHECK)} <b>Цвет фона установлен:</b> <code>#{hex_val}</code>\n\n" + format_main_menu_text(settings),
+        await show_or_edit_banner(
+            event=message,
+            banner_path=config.BANNER_MENU_PATH,
+            cache_key="menu_main",
+            caption=f"{em(E.CHECK)} <b>Цвет фона установлен:</b> <code>#{hex_val}</code>\n\n" + format_main_menu_text(settings),
             reply_markup=get_main_menu_kb(settings),
-            parse_mode="HTML",
         )
     else:
         await message.answer(
@@ -99,7 +112,13 @@ async def cb_res_menu(callback: CallbackQuery, state: FSMContext):
         f"<blockquote>Текущее: <code>{curr_res}</code> · <b>60 FPS</b>\n"
         f"Выбери готовый формат ниже или отправь в чат (например <code>1920x530</code>):</blockquote>"
     )
-    await callback.message.edit_text(text, reply_markup=get_resolution_kb(), parse_mode="HTML")
+    await show_or_edit_banner(
+        event=callback,
+        banner_path=config.BANNER_SETTINGS_PATH,
+        cache_key="menu_settings",
+        caption=text,
+        reply_markup=get_resolution_kb(),
+    )
     await callback.answer()
 
 
@@ -110,8 +129,12 @@ async def cb_set_resolution(callback: CallbackQuery, state: FSMContext):
     await update_user_field(callback.from_user.id, "height", int(h))
     await state.clear()
     settings = await get_user_settings(callback.from_user.id)
-    await callback.message.edit_text(
-        format_main_menu_text(settings), reply_markup=get_main_menu_kb(settings), parse_mode="HTML"
+    await show_or_edit_banner(
+        event=callback,
+        banner_path=config.BANNER_MENU_PATH,
+        cache_key="menu_main",
+        caption=format_main_menu_text(settings),
+        reply_markup=get_main_menu_kb(settings),
     )
     await callback.answer(f"Разрешение: {w}x{h}")
 
@@ -127,10 +150,12 @@ async def msg_resolution(message: Message, state: FSMContext):
             await update_user_field(message.from_user.id, "height", h)
             await state.clear()
             settings = await get_user_settings(message.from_user.id)
-            await message.answer(
-                f"{em(E.CHECK)} <b>Разрешение установлено:</b> {w}x{h}\n\n" + format_main_menu_text(settings),
+            await show_or_edit_banner(
+                event=message,
+                banner_path=config.BANNER_MENU_PATH,
+                cache_key="menu_main",
+                caption=f"{em(E.CHECK)} <b>Разрешение установлено:</b> {w}x{h}\n\n" + format_main_menu_text(settings),
                 reply_markup=get_main_menu_kb(settings),
-                parse_mode="HTML",
             )
             return
     await message.answer(f"{em(E.CROSS)} Введи разрешение в формате <code>ШиринаxВысота</code> (например <code>1920x530</code>):", parse_mode="HTML")
@@ -148,8 +173,12 @@ async def cb_bg3d_menu(callback: CallbackQuery):
         f"• <b>Капли дождя</b>: кинематографичный дождь\n"
         f"• <b>3D Тень</b>: эффект парения эмодзи над холстом</blockquote>"
     )
-    await callback.message.edit_text(
-        text, reply_markup=get_bg3d_kb(settings.get("bg_style", "solid"), bool(settings.get("shadow_3d", 1))), parse_mode="HTML"
+    await show_or_edit_banner(
+        event=callback,
+        banner_path=config.BANNER_SETTINGS_PATH,
+        cache_key="menu_settings",
+        caption=text,
+        reply_markup=get_bg3d_kb(settings.get("bg_style", "solid"), bool(settings.get("shadow_3d", 1))),
     )
     await callback.answer()
 
@@ -199,7 +228,13 @@ async def cb_scale_menu(callback: CallbackQuery):
         f"<blockquote>Текущий масштаб: <code>{curr}%</code>\n"
         f"Выбери размер относительно высоты холста:</blockquote>"
     )
-    await callback.message.edit_text(text, reply_markup=get_scale_kb(curr), parse_mode="HTML")
+    await show_or_edit_banner(
+        event=callback,
+        banner_path=config.BANNER_SETTINGS_PATH,
+        cache_key="menu_settings",
+        caption=text,
+        reply_markup=get_scale_kb(curr),
+    )
     await callback.answer()
 
 
@@ -208,7 +243,11 @@ async def cb_set_scale(callback: CallbackQuery):
     scale_val = int(callback.data.split(":")[1])
     await update_user_field(callback.from_user.id, "emoji_scale", scale_val)
     settings = await get_user_settings(callback.from_user.id)
-    await callback.message.edit_text(
-        format_main_menu_text(settings), reply_markup=get_main_menu_kb(settings), parse_mode="HTML"
+    await show_or_edit_banner(
+        event=callback,
+        banner_path=config.BANNER_MENU_PATH,
+        cache_key="menu_main",
+        caption=format_main_menu_text(settings),
+        reply_markup=get_main_menu_kb(settings),
     )
     await callback.answer(f"Размер: {scale_val}%")

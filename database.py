@@ -43,17 +43,6 @@ async def init_db():
             )
             """
         )
-        await db.execute(
-            """
-            CREATE TABLE IF NOT EXISTS user_presets (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                name TEXT NOT NULL,
-                settings_json TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-            """
-        )
         await db.commit()
 
 
@@ -121,49 +110,3 @@ async def update_user_field(user_id: int, field: str, value):
     await set_user_settings(user_id, settings)
 
 
-async def get_user_presets(user_id: int) -> list:
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        async with db.execute(
-            "SELECT id, name, settings_json, created_at FROM user_presets WHERE user_id = ? ORDER BY id DESC",
-            (user_id,),
-        ) as cursor:
-            rows = await cursor.fetchall()
-            return [dict(r) for r in rows]
-
-
-async def save_preset(user_id: int, name: str, settings: dict) -> int:
-    clean_settings = {
-        k: v for k, v in settings.items() if k not in ("id", "user_id")
-    }
-    json_str = json.dumps(clean_settings, ensure_ascii=False)
-    async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute(
-            "INSERT INTO user_presets (user_id, name, settings_json) VALUES (?, ?, ?)",
-            (user_id, name, json_str),
-        )
-        await db.commit()
-        return cursor.lastrowid
-
-
-async def load_preset(user_id: int, preset_id: int) -> dict | None:
-    async with aiosqlite.connect(DB_PATH) as db:
-        async with db.execute(
-            "SELECT settings_json FROM user_presets WHERE id = ? AND user_id = ?",
-            (preset_id, user_id),
-        ) as cursor:
-            row = await cursor.fetchone()
-            if row:
-                data = json.loads(row[0])
-                await set_user_settings(user_id, data)
-                return data
-    return None
-
-
-async def delete_preset(user_id: int, preset_id: int):
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute(
-            "DELETE FROM user_presets WHERE id = ? AND user_id = ?",
-            (preset_id, user_id),
-        )
-        await db.commit()

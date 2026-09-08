@@ -5,19 +5,27 @@ from aiogram.fsm.context import FSMContext
 
 from database import get_user_settings
 from keyboards import get_main_menu_kb
-from helpers import format_main_menu_text
+from helpers import format_main_menu_text, show_or_edit_banner
 from emoji import E, em
+import config
 
 router = Router()
 
 
 @router.message(CommandStart())
 @router.message(Command("menu"))
+@router.message(Command("settings"))
 async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
     settings = await get_user_settings(message.from_user.id)
     text = format_main_menu_text(settings)
-    await message.answer(text, reply_markup=get_main_menu_kb(settings), parse_mode="HTML")
+    await show_or_edit_banner(
+        event=message,
+        banner_path=config.BANNER_MENU_PATH,
+        cache_key="menu_main",
+        caption=text,
+        reply_markup=get_main_menu_kb(settings),
+    )
 
 
 @router.message(Command("help"))
@@ -32,7 +40,13 @@ async def cmd_help(message: Message, state: FSMContext):
         f"3. <b>Получите результат:</b> бот за секунды сгенерирует плавный 60 FPS баннер (MP4 + GIF)."
         f"</blockquote>"
     )
-    await message.answer(text, reply_markup=get_main_menu_kb(settings), parse_mode="HTML")
+    await show_or_edit_banner(
+        event=message,
+        banner_path=config.BANNER_MENU_PATH,
+        cache_key="menu_main",
+        caption=text,
+        reply_markup=get_main_menu_kb(settings),
+    )
 
 
 @router.callback_query(F.data == "back_to_main")
@@ -41,7 +55,13 @@ async def cb_back_to_main(callback: CallbackQuery, state: FSMContext):
     settings = await get_user_settings(callback.from_user.id)
     text = format_main_menu_text(settings)
     try:
-        await callback.message.edit_text(text, reply_markup=get_main_menu_kb(settings), parse_mode="HTML")
-    except Exception:
-        await callback.message.answer(text, reply_markup=get_main_menu_kb(settings), parse_mode="HTML")
-    await callback.answer()
+        await show_or_edit_banner(
+            event=callback,
+            banner_path=config.BANNER_MENU_PATH,
+            cache_key="menu_main",
+            caption=text,
+            reply_markup=get_main_menu_kb(settings),
+        )
+    finally:
+        await callback.answer()
+

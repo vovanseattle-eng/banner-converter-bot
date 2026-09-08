@@ -1,6 +1,10 @@
 import html
 import re
+from pathlib import Path
+from aiogram.types import Message, CallbackQuery, FSInputFile, InputMediaAnimation
+from aiogram.exceptions import TelegramBadRequest
 from emoji import E, em
+import config
 
 COLOR_NAMES_RU = {
     "черный": "000000",
@@ -86,3 +90,91 @@ def format_main_menu_text(settings: dict) -> str:
         f"{em(E.EDIT)} <b>Водяной знак:</b> <code>{wm_str}</code>"
         f"</blockquote>"
     )
+
+
+async def show_or_edit_banner(
+    event: Message | CallbackQuery,
+    banner_path: Path,
+    cache_key: str,
+    caption: str,
+    reply_markup=None,
+    parse_mode: str = "HTML",
+) -> None:
+    cached_id = config.get_cached_file_id(cache_key)
+
+    if isinstance(event, CallbackQuery):
+        msg = event.message
+        if not msg:
+            return
+
+        if msg.animation or msg.video or msg.photo:
+            media_input = cached_id or FSInputFile(banner_path)
+            media = InputMediaAnimation(media=media_input, caption=caption, parse_mode=parse_mode)
+            try:
+                sent = await msg.edit_media(media=media, reply_markup=reply_markup)
+                if hasattr(sent, "animation") and sent.animation and not cached_id:
+                    config.save_cached_file_id(cache_key, sent.animation.file_id)
+                return
+            except TelegramBadRequest as e:
+                err_text = str(e).lower()
+                if "message is not modified" in err_text:
+                    return
+                if cached_id:
+                    try:
+                        media = InputMediaAnimation(media=FSInputFile(banner_path), caption=caption, parse_mode=parse_mode)
+                        sent = await msg.edit_media(media=media, reply_markup=reply_markup)
+                        if hasattr(sent, "animation") and sent.animation:
+                            config.save_cached_file_id(cache_key, sent.animation.file_id)
+                        return
+                    except TelegramBadRequest as e2:
+                        if "message is not modified" in str(e2).lower():
+                            return
+            except Exception:
+                pass
+
+        try:
+            await msg.delete()
+        except Exception:
+            pass
+
+        media_input = cached_id or FSInputFile(banner_path)
+        try:
+            sent = await msg.answer_animation(
+                animation=media_input,
+                caption=caption,
+                reply_markup=reply_markup,
+                parse_mode=parse_mode,
+            )
+            if sent.animation and not cached_id:
+                config.save_cached_file_id(cache_key, sent.animation.file_id)
+        except Exception:
+            sent = await msg.answer_animation(
+                animation=FSInputFile(banner_path),
+                caption=caption,
+                reply_markup=reply_markup,
+                parse_mode=parse_mode,
+            )
+            if sent.animation:
+                config.save_cached_file_id(cache_key, sent.animation.file_id)
+
+    elif isinstance(event, Message):
+        media_input = cached_id or FSInputFile(banner_path)
+        try:
+            sent = await event.answer_animation(
+                animation=media_input,
+                caption=caption,
+                reply_markup=reply_markup,
+                parse_mode=parse_mode,
+            )
+            if sent.animation and not cached_id:
+                config.save_cached_file_id(cache_key, sent.animation.file_id)
+        except Exception:
+            sent = await event.answer_animation(
+                animation=FSInputFile(banner_path),
+                caption=caption,
+                reply_markup=reply_markup,
+                parse_mode=parse_mode,
+            )
+            if sent.animation:
+                config.save_cached_file_id(cache_key, sent.animation.file_id)
+

@@ -6,6 +6,5 @@ class SettingsStates(StatesGroup):
     waiting_resolution = State()
     waiting_recolor = State()
     waiting_custom_media = State()
-    waiting_preset_name = State()
     waiting_wm_text = State()
     waiting_wm_color = State()

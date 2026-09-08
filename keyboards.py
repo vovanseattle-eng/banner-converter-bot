@@ -18,12 +18,11 @@ def get_main_menu_kb(settings: dict) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="ЦветEmoji", callback_data="menu:recolor", icon_custom_emoji_id=E.DESIGN),
         ],
         [
-            InlineKeyboardButton(text="Своя медиа", callback_data="menu:media", icon_custom_emoji_id=E.MEDIA),
-            InlineKeyboardButton(text="Заметки", callback_data="menu:presets", icon_custom_emoji_id=E.FILE),
+            InlineKeyboardButton(text="Размер эмодзи", callback_data="menu:scale", icon_custom_emoji_id=E.SCALE),
+            InlineKeyboardButton(text="Водяной знак", callback_data="menu:watermark", icon_custom_emoji_id=E.EDIT),
         ],
         [
-            InlineKeyboardButton(text="Водяной знак", callback_data="menu:watermark", icon_custom_emoji_id=E.EDIT),
-            InlineKeyboardButton(text="Размер эмодзи", callback_data="menu:scale", icon_custom_emoji_id=E.SCALE),
+            InlineKeyboardButton(text="Своя медиа", callback_data="menu:media", icon_custom_emoji_id=E.MEDIA),
         ],
     ]
     return InlineKeyboardMarkup(inline_keyboard=kb)
@@ -193,16 +192,6 @@ def get_media_kb(has_custom: bool) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 
-def get_presets_kb(presets: list) -> InlineKeyboardMarkup:
-    kb = []
-    for p in presets[:5]:
-        kb.append([
-            InlineKeyboardButton(text=p['name'], callback_data=f"load_preset:{p['id']}", icon_custom_emoji_id=E.FILE),
-            InlineKeyboardButton(text="Удалить", callback_data=f"del_preset:{p['id']}", icon_custom_emoji_id=E.CROSS),
-        ])
-    kb.append([InlineKeyboardButton(text="Новая заметка", callback_data="new_preset", icon_custom_emoji_id=E.EDIT)])
-    kb.append([InlineKeyboardButton(text="Назад", callback_data="back_to_main")])
-    return InlineKeyboardMarkup(inline_keyboard=kb)
 
 
 def get_watermark_kb(has_wm: bool) -> InlineKeyboardMarkup:

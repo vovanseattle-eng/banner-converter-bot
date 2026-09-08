@@ -9,7 +9,7 @@ from aiogram.types import BotCommand, BotCommandScopeDefault, MenuButtonCommands
 
 from config import BOT_TOKEN, PROXY_URL
 from database import init_db
-from handlers import menu, settings, recolor, watermark, presets, media_bg, convert
+from handlers import menu, settings, recolor, watermark, media_bg, convert
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,7 +42,6 @@ async def set_bot_commands(bot: Bot):
     commands = [
         BotCommand(command="start", description="Главное меню"),
         BotCommand(command="settings", description="Параметры сцены"),
-        BotCommand(command="presets", description="Сохранённые заметки"),
         BotCommand(command="help", description="Инструкция по баннерам"),
     ]
     try:
@@ -77,7 +76,6 @@ async def main():
     dp.include_router(settings.router)
     dp.include_router(recolor.router)
     dp.include_router(watermark.router)
-    dp.include_router(presets.router)
     dp.include_router(media_bg.router)
     dp.include_router(convert.router)
 
