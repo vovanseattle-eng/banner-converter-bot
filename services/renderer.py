@@ -276,7 +276,9 @@ async def render_banner(
                 "-crf", "22",
             ]
             thread_args = [
-                "-threads", "0",
+                "-threads", "2",
+                "-filter_threads", "1",
+                "-filter_complex_threads", "1",
             ]
 
         cmd = [

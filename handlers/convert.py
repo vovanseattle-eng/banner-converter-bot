@@ -1,5 +1,8 @@
 import asyncio
+import gc
+import shutil
 import tempfile
+import time
 from pathlib import Path
 from aiogram import Router, F
 from aiogram.types import (
@@ -21,6 +24,23 @@ router = Router()
 
 OUTPUTS_DIR = Path("renders")
 OUTPUTS_DIR.mkdir(exist_ok=True)
+
+
+def cleanup_old_renders(directory: Path, max_age_seconds: int = 1800, keep_last: int = 10):
+    """Очищает старые баннеры из RAM/диска контейнера для предотвращения утечек."""
+    try:
+        if not directory.exists():
+            return
+        files = sorted(directory.glob("banner_*.mp4"), key=lambda f: f.stat().st_mtime, reverse=True)
+        now = time.time()
+        for idx, f in enumerate(files):
+            if idx >= keep_last or (now - f.stat().st_mtime) > max_age_seconds:
+                try:
+                    f.unlink(missing_ok=True)
+                except Exception:
+                    pass
+    except Exception:
+        pass
 
 
 async def process_media_render(message: Message, file_id: str, is_tgs: bool = False):
@@ -80,8 +100,9 @@ async def process_media_render(message: Message, file_id: str, is_tgs: bool = Fa
             err_text = "Таймаут обработки. Попробуй еще раз."
         await status_msg.edit_text(f"{em(E.CROSS)} Ошибка рендера: {err_text}", parse_mode="HTML")
     finally:
-        import shutil
         shutil.rmtree(temp_dir, ignore_errors=True)
+        gc.collect()
+        cleanup_old_renders(OUTPUTS_DIR)
 
 
 async def process_multi_emoji_render(message: Message, stickers: list):
@@ -149,8 +170,9 @@ async def process_multi_emoji_render(message: Message, stickers: list):
             err_text = "Таймаут обработки. Попробуй еще раз."
         await status_msg.edit_text(f"{em(E.CROSS)} Ошибка рендера: {err_text}", parse_mode="HTML")
     finally:
-        import shutil
         shutil.rmtree(temp_dir, ignore_errors=True)
+        gc.collect()
+        cleanup_old_renders(OUTPUTS_DIR)
 
 
 # 1. Приём стикеров (WEBM, WEBP, TGS)

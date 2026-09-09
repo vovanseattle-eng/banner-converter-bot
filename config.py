@@ -13,8 +13,8 @@ ASSETS_DIR = BASE_DIR / "assets"
 FONTS_DIR = ASSETS_DIR / "fonts"
 BACKGROUNDS_DIR = ASSETS_DIR / "backgrounds"
 
-# Ограничения безопасности
-MAX_RENDER_CONCURRENCY = 2
+# Ограничения безопасности (строго 1 для исключения OOM на 512 МБ Render)
+MAX_RENDER_CONCURRENCY = 1
 RENDER_TIMEOUT_SECONDS = 150
 MAX_WIDTH = 2560
 MAX_HEIGHT = 1440
