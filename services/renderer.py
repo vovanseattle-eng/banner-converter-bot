@@ -148,9 +148,16 @@ async def render_banner(
 
         if bg_video_path and bg_video_path.exists():
             inputs.extend(["-stream_loop", "-1", "-i", to_safe_path(bg_video_path)])
-            filter_complex_parts.append(
-                f"[0:v]scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},fps=60[bg];"
-            )
+            if bg_style in available_bgs and bg_color != "000000":
+                filter_complex_parts.append(
+                    f"color=c=0x{bg_color}:s={width}x{height}:r=60:d={loop_duration:.2f}[base_col];"
+                    f"[0:v]scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},fps=60[tex];"
+                    f"[base_col][tex]blend=c0_mode=screen:c1_expr=A:c2_expr=A[bg];"
+                )
+            else:
+                filter_complex_parts.append(
+                    f"[0:v]scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},fps=60[bg];"
+                )
         else:
             filter_complex_parts.append(
                 f"color=c=0x{bg_color}:s={width}x{height}:r=60:d={loop_duration:.2f}[bg];"

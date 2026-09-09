@@ -51,7 +51,7 @@ def parse_color_input(text: str) -> str | None:
 
 def format_main_menu_text(settings: dict) -> str:
     bg_style_map = {
-        "solid": f"#{settings.get('bg_color', '000000')}",
+        "solid": "Сплошной",
         "silk": "Студийный шёлк",
         "grid": "3D Сетка",
         "grain": "Плёночное зерно",
@@ -62,7 +62,16 @@ def format_main_menu_text(settings: dict) -> str:
         "rain": "Капли дождя",
         "custom": "Своя медиа",
     }
-    bg_str = html.escape(bg_style_map.get(settings.get("bg_style", "solid"), "Сплошной"))
+    bg_style = settings.get("bg_style", "solid")
+    color_hex = settings.get("bg_color", "000000")
+    if bg_style == "solid":
+        bg_str = f"#{color_hex}"
+    elif bg_style == "custom":
+        bg_str = "Своя медиа"
+    else:
+        style_name = bg_style_map.get(bg_style, "3D")
+        bg_str = f"{style_name} (#{color_hex})" if color_hex != "000000" else style_name
+    bg_str = html.escape(bg_str)
 
     recolor = settings.get("emoji_color")
     recolor_str = html.escape(f"#{recolor}" if recolor else "Оригинал")

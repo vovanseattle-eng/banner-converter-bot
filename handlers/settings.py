@@ -66,7 +66,9 @@ async def cb_color_menu(callback: CallbackQuery, state: FSMContext):
 async def cb_set_color(callback: CallbackQuery, state: FSMContext):
     hex_color = callback.data.split(":")[1].upper()
     await update_user_field(callback.from_user.id, "bg_color", hex_color)
-    await update_user_field(callback.from_user.id, "bg_style", "solid")
+    settings = await get_user_settings(callback.from_user.id)
+    if settings.get("bg_style") == "custom":
+        await update_user_field(callback.from_user.id, "bg_style", "solid")
     await state.clear()
     settings = await get_user_settings(callback.from_user.id)
     await show_or_edit_banner(
@@ -84,7 +86,9 @@ async def msg_bg_color(message: Message, state: FSMContext):
     hex_val = parse_color_input(message.text)
     if hex_val:
         await update_user_field(message.from_user.id, "bg_color", hex_val)
-        await update_user_field(message.from_user.id, "bg_style", "solid")
+        settings = await get_user_settings(message.from_user.id)
+        if settings.get("bg_style") == "custom":
+            await update_user_field(message.from_user.id, "bg_style", "solid")
         await state.clear()
         settings = await get_user_settings(message.from_user.id)
         await show_or_edit_banner(
