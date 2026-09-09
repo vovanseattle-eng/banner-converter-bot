@@ -148,11 +148,19 @@ async def render_banner(
 
         if bg_video_path and bg_video_path.exists():
             inputs.extend(["-stream_loop", "-1", "-i", to_safe_path(bg_video_path)])
-            if bg_style in available_bgs and bg_color != "000000":
+            if bg_style in ("silk", "spotlight") and bg_color != "000000":
                 filter_complex_parts.append(
                     f"color=c=0x{bg_color}:s={width}x{height}:r=60:d={loop_duration:.2f}[base_col];"
-                    f"[0:v]scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},fps=60[tex];"
-                    f"[base_col][tex]blend=c0_mode=screen:c1_expr=A:c2_expr=A[bg];"
+                    f"[0:v]scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},"
+                    f"normalize=blackpt=black:whitept=white:strength=0.8,fps=60[tex];"
+                    f"[base_col][tex]blend=all_mode=softlight[bg];"
+                )
+            elif bg_style in available_bgs and bg_color != "000000":
+                filter_complex_parts.append(
+                    f"color=c=0x{bg_color}:s={width}x{height}:r=60:d={loop_duration:.2f}[base_col];"
+                    f"[0:v]scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},"
+                    f"format=rgba,colorkey=0x060606:0.08:0.1,eq=contrast=2.5:brightness=0.15,fps=60[tex];"
+                    f"[base_col][tex]overlay=0:0[bg];"
                 )
             else:
                 filter_complex_parts.append(
@@ -186,7 +194,10 @@ async def render_banner(
             max_allowed_h += 1
 
         scale_filter = f"scale='min({max_allowed_w},iw*min({max_allowed_w}/iw,{max_allowed_h}/ih))':'min({max_allowed_h},ih*min({max_allowed_w}/iw,{max_allowed_h}/ih))':force_original_aspect_ratio=decrease"
-        stk_pipeline = f"{stk_in}fps=60,{scale_filter},format=rgba"
+        if is_png_sequence:
+            stk_pipeline = f"{stk_in}{scale_filter},format=rgba"
+        else:
+            stk_pipeline = f"{stk_in}fps=60,{scale_filter},format=rgba"
 
         # Легкая аппаратная перекраска через матрицу яркости (0% нагрузки на CPU)
         if emoji_color:
@@ -205,7 +216,7 @@ async def render_banner(
         if shadow_3d == 1:
             filter_complex_parts.append(
                 f"[em]split=2[em_orig][em_sh];"
-                f"[em_sh]format=rgba,lutrgb=r=0:g=0:b=0:a=val*0.4,scale=iw:ih*0.25,boxblur=8:1[shadow];"
+                f"[em_sh]format=rgba,lutrgb=r=0:g=0:b=0:a=val*0.4,scale=iw:ih*0.25,boxblur=4:1[shadow];"
                 f"[bg][shadow]overlay=(W-w)/2:(H-h)/2+{shadow_offset_y}[bg_sh];"
                 f"[bg_sh][em_orig]overlay=(W-w)/2:(H-h)/2[comp]"
             )

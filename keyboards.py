@@ -243,7 +243,7 @@ def get_result_kb(result_filename: str) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="Настройки",
-                    callback_data="back_to_main",
+                    callback_data="result:settings",
                     icon_custom_emoji_id=E.SETTINGS,
                 )
             ],

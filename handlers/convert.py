@@ -7,6 +7,7 @@ from aiogram.types import (
     FSInputFile,
     CallbackQuery,
 )
+from aiogram.fsm.context import FSMContext
 from aiogram.enums import MessageEntityType
 
 from database import get_user_settings
@@ -200,3 +201,25 @@ async def cb_send_doc(callback: CallbackQuery):
         await callback.answer("Файл отправлен")
     else:
         await callback.answer("Файл устарел или был удален.", show_alert=True)
+
+
+# 4. Открытие настроек из готового баннера новым сообщением (чтобы баннер не исчезал)
+@router.callback_query(F.data == "result:settings")
+async def cb_result_settings(callback: CallbackQuery, state: FSMContext):
+    from helpers import format_main_menu_text, show_or_edit_banner
+    from keyboards import get_main_menu_kb
+    import config
+    await state.clear()
+    settings = await get_user_settings(callback.from_user.id)
+    text = format_main_menu_text(settings)
+    # Передаем callback.message, чтобы открылось новое отдельное сообщение с меню,
+    # не затирая готовый баннер
+    await show_or_edit_banner(
+        event=callback.message,
+        banner_path=config.BANNER_MENU_PATH,
+        cache_key="menu_main",
+        caption=text,
+        reply_markup=get_main_menu_kb(settings),
+    )
+    await callback.answer()
+

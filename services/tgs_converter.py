@@ -17,6 +17,6 @@ def render_tgs_to_png_sequence_sync(tgs_path: Path, output_dir: Path, target_siz
 
     for i in range(total_frames):
         im = anim.render_pillow_frame(i, width=target_size, height=target_size)
-        im.save(output_dir / f"f_{i:04d}.png")
+        im.save(output_dir / f"f_{i:04d}.png", "PNG", compress_level=0)
 
     return total_frames, orig_fps
