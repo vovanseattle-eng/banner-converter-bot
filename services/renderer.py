@@ -246,18 +246,24 @@ async def render_banner(
                 "-cq", "19",
                 "-b:v", "0",
             ]
+            thread_args = [
+                "-threads", "1",
+                "-filter_threads", "1",
+                "-filter_complex_threads", "1",
+            ]
         else:
             encoder_args = [
                 "-c:v", "libx264",
-                "-preset", "veryfast",
-                "-crf", "20",
+                "-preset", "ultrafast",
+                "-crf", "22",
+            ]
+            thread_args = [
+                "-threads", "0",
             ]
 
         cmd = [
             "ffmpeg", "-y",
-            "-threads", "1",
-            "-filter_threads", "1",
-            "-filter_complex_threads", "1",
+            *thread_args,
             *inputs,
             "-filter_complex", full_filter,
             "-map", current_out,
@@ -270,14 +276,17 @@ async def render_banner(
             to_safe_path(output_file),
         ]
 
-        import subprocess
-        creation_flags = 0x00004000 if hasattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS") else 0
+        kwargs = {}
+        if os.name == "nt":
+            import subprocess
+            if hasattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS"):
+                kwargs["creationflags"] = subprocess.BELOW_NORMAL_PRIORITY_CLASS
 
         process = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
-            creationflags=creation_flags,
+            **kwargs,
         )
 
         try:
