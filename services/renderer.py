@@ -39,6 +39,32 @@ def get_media_duration_sync(file_path: Path) -> float:
     return 3.0
 
 
+_HAS_NVENC: bool | None = None
+
+
+def has_nvenc() -> bool:
+    global _HAS_NVENC
+    if _HAS_NVENC is not None:
+        return _HAS_NVENC
+    import subprocess
+    try:
+        res = subprocess.run(
+            [
+                "ffmpeg", "-y", "-v", "error",
+                "-f", "lavfi", "-i", "nullsrc=s=256x256:d=0.1",
+                "-c:v", "h264_nvenc",
+                "-f", "null", "-",
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=3,
+        )
+        _HAS_NVENC = (res.returncode == 0)
+    except Exception:
+        _HAS_NVENC = False
+    return _HAS_NVENC
+
+
 def to_safe_path(p: Path | str) -> str:
     path_str = str(p)
     if os.name == "nt":
@@ -212,7 +238,21 @@ async def render_banner(
 
         full_filter = "".join(filter_complex_parts)
 
-        # Жесткое ограничение потоков фильтрации, чтобы CPU спал
+        if has_nvenc():
+            encoder_args = [
+                "-c:v", "h264_nvenc",
+                "-preset", "p4",
+                "-tune", "hq",
+                "-cq", "19",
+                "-b:v", "0",
+            ]
+        else:
+            encoder_args = [
+                "-c:v", "libx264",
+                "-preset", "veryfast",
+                "-crf", "20",
+            ]
+
         cmd = [
             "ffmpeg", "-y",
             "-threads", "1",
@@ -221,11 +261,7 @@ async def render_banner(
             *inputs,
             "-filter_complex", full_filter,
             "-map", current_out,
-            "-c:v", "h264_nvenc",
-            "-preset", "p4",
-            "-tune", "hq",
-            "-cq", "19",
-            "-b:v", "0",
+            *encoder_args,
             "-pix_fmt", "yuv420p",
             "-r", "60",
             "-t", f"{loop_duration:.2f}",

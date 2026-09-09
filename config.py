@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).parent
 load_dotenv(BASE_DIR / ".env")
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
-PROXY_URL = os.getenv("PROXY_URL", "http://127.0.0.1:10809")
+PROXY_URL = os.getenv("PROXY_URL", "")
 WEBAPP_COLOR_PICKER_URL = os.getenv("WEBAPP_COLOR_PICKER_URL", "https://color-picker-webapp.vercel.app")
 
 ASSETS_DIR = BASE_DIR / "assets"
