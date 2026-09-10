@@ -1,7 +1,7 @@
 import html
 import re
 from pathlib import Path
-from aiogram.types import Message, CallbackQuery, FSInputFile, InputMediaAnimation
+from aiogram.types import Message, CallbackQuery, FSInputFile, InputMediaAnimation, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.exceptions import TelegramBadRequest
 from emoji import E, em
 import config
@@ -101,6 +101,21 @@ def format_main_menu_text(settings: dict) -> str:
     )
 
 
+def strip_icons(markup: InlineKeyboardMarkup | None) -> InlineKeyboardMarkup | None:
+    if markup is None:
+        return None
+    rows = []
+    for row in markup.inline_keyboard:
+        fresh = []
+        for btn in row:
+            data = btn.model_dump(exclude_none=True)
+            data.pop("icon_custom_emoji_id", None)
+            data.pop("style", None)
+            fresh.append(InlineKeyboardButton(**data))
+        rows.append(fresh)
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
 async def show_or_edit_banner(
     event: Message | CallbackQuery,
     banner_path: Path,
@@ -128,6 +143,12 @@ async def show_or_edit_banner(
                 err_text = str(e).lower()
                 if "message is not modified" in err_text:
                     return
+                if "icon" in err_text or "custom emoji" in err_text or "emoji_id" in err_text or "style" in err_text:
+                    try:
+                        sent = await msg.edit_media(media=media, reply_markup=strip_icons(reply_markup))
+                        return
+                    except Exception:
+                        pass
                 if cached_id:
                     try:
                         media = InputMediaAnimation(media=FSInputFile(banner_path), caption=caption, parse_mode=parse_mode)
@@ -156,15 +177,31 @@ async def show_or_edit_banner(
             )
             if sent.animation and not cached_id:
                 config.save_cached_file_id(cache_key, sent.animation.file_id)
+        except TelegramBadRequest as e:
+            err_text = str(e).lower()
+            if "icon" in err_text or "custom emoji" in err_text or "emoji_id" in err_text or "style" in err_text:
+                try:
+                    sent = await msg.answer_animation(
+                        animation=media_input,
+                        caption=caption,
+                        reply_markup=strip_icons(reply_markup),
+                        parse_mode=parse_mode,
+                    )
+                    return
+                except Exception:
+                    pass
         except Exception:
-            sent = await msg.answer_animation(
-                animation=FSInputFile(banner_path),
-                caption=caption,
-                reply_markup=reply_markup,
-                parse_mode=parse_mode,
-            )
-            if sent.animation:
-                config.save_cached_file_id(cache_key, sent.animation.file_id)
+            try:
+                sent = await msg.answer_animation(
+                    animation=FSInputFile(banner_path),
+                    caption=caption,
+                    reply_markup=reply_markup,
+                    parse_mode=parse_mode,
+                )
+                if sent.animation:
+                    config.save_cached_file_id(cache_key, sent.animation.file_id)
+            except Exception:
+                pass
 
     elif isinstance(event, Message):
         media_input = cached_id or FSInputFile(banner_path)
@@ -177,13 +214,29 @@ async def show_or_edit_banner(
             )
             if sent.animation and not cached_id:
                 config.save_cached_file_id(cache_key, sent.animation.file_id)
+        except TelegramBadRequest as e:
+            err_text = str(e).lower()
+            if "icon" in err_text or "custom emoji" in err_text or "emoji_id" in err_text or "style" in err_text:
+                try:
+                    sent = await event.answer_animation(
+                        animation=media_input,
+                        caption=caption,
+                        reply_markup=strip_icons(reply_markup),
+                        parse_mode=parse_mode,
+                    )
+                    return
+                except Exception:
+                    pass
         except Exception:
-            sent = await event.answer_animation(
-                animation=FSInputFile(banner_path),
-                caption=caption,
-                reply_markup=reply_markup,
-                parse_mode=parse_mode,
-            )
-            if sent.animation:
-                config.save_cached_file_id(cache_key, sent.animation.file_id)
+            try:
+                sent = await event.answer_animation(
+                    animation=FSInputFile(banner_path),
+                    caption=caption,
+                    reply_markup=reply_markup,
+                    parse_mode=parse_mode,
+                )
+                if sent.animation:
+                    config.save_cached_file_id(cache_key, sent.animation.file_id)
+            except Exception:
+                pass
 

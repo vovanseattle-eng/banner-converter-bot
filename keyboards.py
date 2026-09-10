@@ -1,31 +1,60 @@
+from __future__ import annotations
+
 from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     WebAppInfo,
 )
-from emoji import E
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
 from config import WEBAPP_COLOR_PICKER_URL
+from emoji import E
+
+DANGER = "danger"
+
+
+def _b(
+    builder: InlineKeyboardBuilder,
+    text: str,
+    data: str | None = None,
+    icon: E | None = None,
+    *,
+    style: str | None = None,
+    url: str | None = None,
+    web_app: WebAppInfo | None = None,
+) -> None:
+    builder.button(
+        text=text,
+        callback_data=data if (not url and not web_app) else None,
+        url=url,
+        web_app=web_app,
+        icon_custom_emoji_id=icon,
+        style=style,
+    )
+
+
+def _back(builder: InlineKeyboardBuilder, text: str = "Назад", data: str = "back_to_main") -> None:
+    # Без стрелок/смайликов в тексте, только кастомная иконка E.BACK
+    _b(builder, text, data, E.BACK)
 
 
 def get_main_menu_kb(settings: dict) -> InlineKeyboardMarkup:
-    kb = [
-        [
-            InlineKeyboardButton(text="Цвет фона", callback_data="menu:color", icon_custom_emoji_id=E.BRUSH),
-            InlineKeyboardButton(text="Разрешение", callback_data="menu:resolution", icon_custom_emoji_id=E.RESIZE),
-        ],
-        [
-            InlineKeyboardButton(text="3D Фон", callback_data="menu:bg3d", icon_custom_emoji_id=E.APPS),
-            InlineKeyboardButton(text="ЦветEmoji", callback_data="menu:recolor", icon_custom_emoji_id=E.DESIGN),
-        ],
-        [
-            InlineKeyboardButton(text="Размер эмодзи", callback_data="menu:scale", icon_custom_emoji_id=E.SCALE),
-            InlineKeyboardButton(text="Водяной знак", callback_data="menu:watermark", icon_custom_emoji_id=E.EDIT),
-        ],
-        [
-            InlineKeyboardButton(text="Своя медиа", callback_data="menu:media", icon_custom_emoji_id=E.MEDIA),
-        ],
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=kb)
+    """
+    Главное меню:
+    - Главные действия (Цвет фона, 3D Фон) на всю ширину и в огненно-красном стиле DANGER.
+    - Второстепенные настройки сгруппированы по 2 в строке.
+    - Своя медиа внизу на отдельной строке.
+    """
+    b = InlineKeyboardBuilder()
+    _b(b, "Цвет фона", "menu:color", E.BRUSH, style=DANGER)
+    _b(b, "3D Фон", "menu:bg3d", E.APPS, style=DANGER)
+    _b(b, "Разрешение", "menu:resolution", E.RESIZE)
+    _b(b, "ЦветEmoji", "menu:recolor", E.DESIGN)
+    _b(b, "Размер эмодзи", "menu:scale", E.SCALE)
+    _b(b, "Водяной знак", "menu:watermark", E.EDIT)
+    _b(b, "Своя медиа", "menu:media", E.MEDIA)
+    b.adjust(1, 1, 2, 2, 1)
+    return b.as_markup()
 
 
 COLOR_PALETTES = {
@@ -80,14 +109,13 @@ def build_color_picker_kb(target: str, active_cat: str = "classic", has_extra: b
     if active_cat not in COLOR_PALETTES:
         active_cat = "classic"
 
-    tabs_row = []
+    b = InlineKeyboardBuilder()
+    # Вкладки палитр
     for cat_key, cat_data in COLOR_PALETTES.items():
         title = ("• " if cat_key == active_cat else "") + cat_data["title"]
-        tabs_row.append(
-            InlineKeyboardButton(text=title, callback_data=f"pal_cat:{target}:{cat_key}")
-        )
+        _b(b, title, f"pal_cat:{target}:{cat_key}")
 
-    color_rows = []
+    # Цвета
     colors = COLOR_PALETTES[active_cat]["colors"]
     prefix = {
         "bg": "set_color",
@@ -95,35 +123,32 @@ def build_color_picker_kb(target: str, active_cat: str = "classic", has_extra: b
         "wm": "set_wmcolor",
     }.get(target, "set_color")
 
-    for i in range(0, len(colors), 2):
-        pair = colors[i : i + 2]
-        row = [
-            InlineKeyboardButton(text=f"{name} (#{code})", callback_data=f"{prefix}:{code}")
-            for name, code in pair
-        ]
-        color_rows.append(row)
+    for name, code in colors:
+        _b(b, f"{name} (#{code})", f"{prefix}:{code}")
 
-    extra_rows = []
+    # Дополнительные кнопки
+    extra_count = 0
     if target == "recolor" and has_extra:
-        extra_rows.append([
-            InlineKeyboardButton(
-                text="Убрать цвет (оригинал)", callback_data="clear_recolor", icon_custom_emoji_id=E.TRASH
-            )
-        ])
+        _b(b, "Убрать цвет (оригинал)", "clear_recolor", E.TRASH)
+        extra_count += 1
 
-    extra_rows.append([
-        InlineKeyboardButton(
-            text="Спектр-палитра (любой оттенок)",
-            web_app=WebAppInfo(url=WEBAPP_COLOR_PICKER_URL),
-        )
-    ])
+    # Главное действие: открыть спектр-палитру WebApp (акцентный стиль DANGER)
+    _b(
+        b,
+        "Спектр-палитра (любой оттенок)",
+        web_app=WebAppInfo(url=WEBAPP_COLOR_PICKER_URL),
+        icon=E.DESIGN,
+        style=DANGER,
+    )
+    extra_count += 1
 
     back_target = "menu:watermark" if target == "wm" else "back_to_main"
-    extra_rows.append([
-        InlineKeyboardButton(text="Назад", callback_data=back_target)
-    ])
+    _back(b, "Назад", back_target)
+    extra_count += 1
 
-    return InlineKeyboardMarkup(inline_keyboard=[tabs_row, *color_rows, *extra_rows])
+    adjustments = [4] + [2] * (len(colors) // 2) + [1] * extra_count
+    b.adjust(*adjustments)
+    return b.as_markup()
 
 
 def get_color_kb(active_cat: str = "classic") -> InlineKeyboardMarkup:
@@ -131,51 +156,41 @@ def get_color_kb(active_cat: str = "classic") -> InlineKeyboardMarkup:
 
 
 def get_resolution_kb() -> InlineKeyboardMarkup:
-    kb = [
-        [
-            InlineKeyboardButton(text="1920x530 (Баннер)", callback_data="set_res:1920x530"),
-            InlineKeyboardButton(text="1920x600", callback_data="set_res:1920x600"),
-        ],
-        [
-            InlineKeyboardButton(text="1280x720 (16:9)", callback_data="set_res:1280x720"),
-            InlineKeyboardButton(text="1080x1080 (1:1)", callback_data="set_res:1080x1080"),
-        ],
-        [
-            InlineKeyboardButton(text="1080x1920 (9:16)", callback_data="set_res:1080x1920"),
-        ],
-        [InlineKeyboardButton(text="Назад", callback_data="back_to_main")],
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=kb)
+    """Разрешения: основной баннер 1920x530 выделен и на всю ширину."""
+    b = InlineKeyboardBuilder()
+    _b(b, "1920x530 (Баннер)", "set_res:1920x530", E.RESIZE, style=DANGER)
+    _b(b, "1920x600", "set_res:1920x600")
+    _b(b, "1280x720 (16:9)", "set_res:1280x720")
+    _b(b, "1080x1080 (1:1)", "set_res:1080x1080")
+    _b(b, "1080x1920 (9:16)", "set_res:1080x1920")
+    _back(b, "Назад", "back_to_main")
+    b.adjust(1, 2, 2, 1)
+    return b.as_markup()
 
 
 def get_bg3d_kb(current_style: str, shadow_on: bool) -> InlineKeyboardMarkup:
     shadow_text = "3D Тень: ВКЛ" if shadow_on else "3D Тень: ВЫКЛ"
-    kb = [
-        [
-            InlineKeyboardButton(text=("✓ " if current_style == "solid" else "") + "Сплошной цвет", callback_data="set_bgstyle:solid"),
-            InlineKeyboardButton(text=("✓ " if current_style == "silk" else "") + "Студийный шёлк", callback_data="set_bgstyle:silk"),
-        ],
-        [
-            InlineKeyboardButton(text=("✓ " if current_style == "grid" else "") + "3D Сетка", callback_data="set_bgstyle:grid"),
-            InlineKeyboardButton(text=("✓ " if current_style == "grain" else "") + "Плёночное зерно", callback_data="set_bgstyle:grain"),
-        ],
-        [
-            InlineKeyboardButton(text=("✓ " if current_style == "topo" else "") + "Топо-линии", callback_data="set_bgstyle:topo"),
-            InlineKeyboardButton(text=("✓ " if current_style == "particles" else "") + "Парящие частицы", callback_data="set_bgstyle:particles"),
-        ],
-        [
-            InlineKeyboardButton(text=("✓ " if current_style == "spotlight" else "") + "Студийный софит", callback_data="set_bgstyle:spotlight"),
-            InlineKeyboardButton(text=("✓ " if current_style == "scanline" else "") + "Кибер-сканлайн", callback_data="set_bgstyle:scanline"),
-        ],
-        [
-            InlineKeyboardButton(text=("✓ " if current_style == "rain" else "") + "Капли дождя", callback_data="set_bgstyle:rain"),
-        ],
-        [
-            InlineKeyboardButton(text=shadow_text, callback_data="toggle_shadow", icon_custom_emoji_id=E.CHECK if shadow_on else E.CROSS),
-        ],
-        [InlineKeyboardButton(text="Назад", callback_data="back_to_main")],
+    b = InlineKeyboardBuilder()
+    styles = [
+        ("solid", "Сплошной цвет"),
+        ("silk", "Студийный шёлк"),
+        ("grid", "3D Сетка"),
+        ("grain", "Плёночное зерно"),
+        ("topo", "Топо-линии"),
+        ("particles", "Парящие частицы"),
+        ("spotlight", "Студийный софит"),
+        ("scanline", "Кибер-сканлайн"),
     ]
-    return InlineKeyboardMarkup(inline_keyboard=kb)
+    for key, name in styles:
+        prefix = "✓ " if current_style == key else ""
+        _b(b, f"{prefix}{name}", f"set_bgstyle:{key}")
+
+    rain_prefix = "✓ " if current_style == "rain" else ""
+    _b(b, f"{rain_prefix}Капли дождя", "set_bgstyle:rain")
+    _b(b, shadow_text, "toggle_shadow", E.CHECK if shadow_on else E.CROSS)
+    _back(b, "Назад", "back_to_main")
+    b.adjust(2, 2, 2, 2, 1, 1, 1)
+    return b.as_markup()
 
 
 def get_recolor_kb(has_color: bool, active_cat: str = "classic") -> InlineKeyboardMarkup:
@@ -183,31 +198,28 @@ def get_recolor_kb(has_color: bool, active_cat: str = "classic") -> InlineKeyboa
 
 
 def get_media_kb(has_custom: bool) -> InlineKeyboardMarkup:
-    kb = [
-        [InlineKeyboardButton(text="Загрузить медиа", callback_data="upload_media", icon_custom_emoji_id=E.SEND)],
-    ]
+    b = InlineKeyboardBuilder()
+    _b(b, "Загрузить медиа", "upload_media", E.SEND, style=DANGER)
     if has_custom:
-        kb.append([InlineKeyboardButton(text="Сбросить свой фон", callback_data="reset_media", icon_custom_emoji_id=E.TRASH)])
-    kb.append([InlineKeyboardButton(text="Назад", callback_data="back_to_main")])
-    return InlineKeyboardMarkup(inline_keyboard=kb)
-
-
+        _b(b, "Сбросить свой фон", "reset_media", E.TRASH)
+    _back(b, "Назад", "back_to_main")
+    b.adjust(*([1] * (3 if has_custom else 2)))
+    return b.as_markup()
 
 
 def get_watermark_kb(has_wm: bool) -> InlineKeyboardMarkup:
-    kb = [
-        [
-            InlineKeyboardButton(text="Название", callback_data="wm:title", icon_custom_emoji_id=E.EDIT),
-            InlineKeyboardButton(text="Цвет", callback_data="wm:color", icon_custom_emoji_id=E.BRUSH),
-        ],
-        [
-            InlineKeyboardButton(text="Позиция", callback_data="wm:pos", icon_custom_emoji_id=E.RESIZE),
-        ],
-    ]
+    b = InlineKeyboardBuilder()
+    _b(b, "Название", "wm:title", E.EDIT)
+    _b(b, "Цвет", "wm:color", E.BRUSH)
+    _b(b, "Позиция", "wm:pos", E.RESIZE)
     if has_wm:
-        kb.append([InlineKeyboardButton(text="Отключить водяной знак", callback_data="wm:clear", icon_custom_emoji_id=E.TRASH)])
-    kb.append([InlineKeyboardButton(text="Назад", callback_data="back_to_main")])
-    return InlineKeyboardMarkup(inline_keyboard=kb)
+        _b(b, "Отключить водяной знак", "wm:clear", E.TRASH)
+    _back(b, "Назад", "back_to_main")
+    if has_wm:
+        b.adjust(2, 1, 1, 1)
+    else:
+        b.adjust(2, 1, 1)
+    return b.as_markup()
 
 
 def get_wm_color_kb(active_cat: str = "classic") -> InlineKeyboardMarkup:
@@ -216,36 +228,19 @@ def get_wm_color_kb(active_cat: str = "classic") -> InlineKeyboardMarkup:
 
 def get_scale_kb(current_scale: int) -> InlineKeyboardMarkup:
     scales = [50, 75, 100, 125, 150, 200]
-    row1 = []
-    row2 = []
-    for s in scales[:3]:
+    b = InlineKeyboardBuilder()
+    for s in scales:
         label = f"✓ {s}%" if s == current_scale else f"{s}%"
-        row1.append(InlineKeyboardButton(text=label, callback_data=f"set_scale:{s}"))
-    for s in scales[3:]:
-        label = f"✓ {s}%" if s == current_scale else f"{s}%"
-        row2.append(InlineKeyboardButton(text=label, callback_data=f"set_scale:{s}"))
-
-    return InlineKeyboardMarkup(
-        inline_keyboard=[row1, row2, [InlineKeyboardButton(text="Назад", callback_data="back_to_main")]]
-    )
+        _b(b, label, f"set_scale:{s}")
+    _back(b, "Назад", "back_to_main")
+    b.adjust(3, 3, 1)
+    return b.as_markup()
 
 
 def get_result_kb(result_filename: str) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="Скачать файлом без сжатия",
-                    callback_data=f"send_doc:{result_filename}",
-                    icon_custom_emoji_id=E.DOWNLOAD,
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="Настройки",
-                    callback_data="result:settings",
-                    icon_custom_emoji_id=E.SETTINGS,
-                )
-            ],
-        ]
-    )
+    """Экран готового результата: скачать файлом — крупная акцентная кнопка DANGER."""
+    b = InlineKeyboardBuilder()
+    _b(b, "Скачать файлом без сжатия", f"send_doc:{result_filename}", E.DOWNLOAD, style=DANGER)
+    _b(b, "Настройки", "result:settings", E.SETTINGS)
+    b.adjust(1, 1)
+    return b.as_markup()
