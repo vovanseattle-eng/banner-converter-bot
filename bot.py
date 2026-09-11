@@ -71,8 +71,8 @@ async def main():
     bot = Bot(token=BOT_TOKEN, session=session)
     await set_bot_commands(bot)
     dp = Dispatcher(storage=MemoryStorage())
-    dp.message.middleware(SubscriptionMiddleware())
-    dp.callback_query.middleware(SubscriptionMiddleware())
+    dp.message.outer_middleware(SubscriptionMiddleware())
+    dp.callback_query.outer_middleware(SubscriptionMiddleware())
 
     # Подключение обработчиков
     dp.include_router(menu.router)
