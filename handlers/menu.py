@@ -65,3 +65,31 @@ async def cb_back_to_main(callback: CallbackQuery, state: FSMContext):
     finally:
         await callback.answer()
 
+
+@router.callback_query(F.data == "check_subscription")
+async def cb_check_subscription(callback: CallbackQuery, state: FSMContext):
+    from services.subscription import check_user_subscription, clear_user_subscription_cache
+
+    user_id = callback.from_user.id
+    clear_user_subscription_cache(user_id)
+
+    is_sub = await check_user_subscription(callback.bot, user_id)
+    if is_sub:
+        await callback.answer("Подписка подтверждена!", show_alert=False)
+        await state.clear()
+        settings = await get_user_settings(user_id)
+        text = format_main_menu_text(settings)
+        await show_or_edit_banner(
+            event=callback,
+            banner_path=config.BANNER_MENU_PATH,
+            cache_key="menu_main",
+            caption=text,
+            reply_markup=get_main_menu_kb(settings),
+        )
+    else:
+        await callback.answer(
+            f"Вы пока не подписались на @{config.CHANNEL_USERNAME}! Пожалуйста, перейдите в канал и нажмите «Подписаться».",
+            show_alert=True,
+        )
+
+

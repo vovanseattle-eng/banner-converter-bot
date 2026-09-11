@@ -10,6 +10,7 @@ from keyboards import (
     get_scale_kb,
     get_color_kb,
     build_color_picker_kb,
+    get_subscription_kb,
     DANGER,
 )
 
@@ -86,3 +87,16 @@ class TestBannerConverterKeyboards(unittest.TestCase):
                     self.assertNotIn("◁", btn.text)
                     self.assertNotIn("◀", btn.text)
                     self.assertNotIn("⬅", btn.text)
+
+    def test_subscription_kb(self):
+        kb = get_subscription_kb("https://t.me/gifthemy")
+        rows = kb.inline_keyboard
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0][0].text, "Подписаться на канал")
+        self.assertEqual(rows[0][0].url, "https://t.me/gifthemy")
+        self.assertEqual(rows[0][0].icon_custom_emoji_id, E.LINK)
+        self.assertEqual(rows[1][0].text, "Проверить подписку")
+        self.assertEqual(rows[1][0].callback_data, "check_subscription")
+        self.assertEqual(rows[1][0].style, DANGER)
+        self.assertEqual(rows[1][0].icon_custom_emoji_id, E.CHECK)
+

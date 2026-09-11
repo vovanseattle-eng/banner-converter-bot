@@ -244,3 +244,13 @@ def get_result_kb(result_filename: str) -> InlineKeyboardMarkup:
     _b(b, "Настройки", "result:settings", E.SETTINGS)
     b.adjust(1, 1)
     return b.as_markup()
+
+
+def get_subscription_kb(channel_url: str) -> InlineKeyboardMarkup:
+    """Клавиатура обязательной подписки на канал."""
+    b = InlineKeyboardBuilder()
+    _b(b, "Подписаться на канал", url=channel_url, icon=E.LINK)
+    _b(b, "Проверить подписку", data="check_subscription", icon=E.CHECK, style=DANGER)
+    b.adjust(1, 1)
+    return b.as_markup()
+

@@ -8,6 +8,8 @@ load_dotenv(BASE_DIR / ".env")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 PROXY_URL = os.getenv("PROXY_URL", "")
 WEBAPP_COLOR_PICKER_URL = os.getenv("WEBAPP_COLOR_PICKER_URL", "https://color-picker-webapp.vercel.app")
+CHANNEL_USERNAME = os.getenv("CHANNEL_USERNAME", "gifthemy").lstrip("@")
+CHANNEL_URL = os.getenv("CHANNEL_URL", "https://t.me/gifthemy")
 
 ASSETS_DIR = BASE_DIR / "assets"
 FONTS_DIR = ASSETS_DIR / "fonts"

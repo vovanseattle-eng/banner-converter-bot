@@ -240,3 +240,20 @@ async def show_or_edit_banner(
             except Exception:
                 pass
 
+
+def format_subscription_required_text(channel_name: str = "gifthemy") -> str:
+    return (
+        f"<b>{em(E.LINK)} ТРЕБУЕТСЯ ПОДПИСКА НА КАНАЛ</b>\n"
+        f"<i>Для доступа ко всем функциям бота подпишитесь на наш канал</i>\n\n"
+        f"<b>Зачем подписываться:</b>\n"
+        f"<blockquote>"
+        f"В канале @{channel_name} публикуются обновления, новые пресеты 60 FPS сцен, анонсы и поддержка."
+        f"</blockquote>\n\n"
+        f"<b>Как продолжить:</b>\n"
+        f"<blockquote>"
+        f"1. Нажмите кнопку «Подписаться на канал» ниже.\n"
+        f"2. После подписки нажмите «Проверить подписку»."
+        f"</blockquote>"
+    )
+
+

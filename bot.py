@@ -10,6 +10,7 @@ from aiogram.types import BotCommand, BotCommandScopeDefault, MenuButtonCommands
 from config import BOT_TOKEN, PROXY_URL
 from database import init_db
 from handlers import menu, settings, recolor, watermark, media_bg, convert
+from middlewares import SubscriptionMiddleware
 
 logging.basicConfig(
     level=logging.INFO,
@@ -70,6 +71,8 @@ async def main():
     bot = Bot(token=BOT_TOKEN, session=session)
     await set_bot_commands(bot)
     dp = Dispatcher(storage=MemoryStorage())
+    dp.message.middleware(SubscriptionMiddleware())
+    dp.callback_query.middleware(SubscriptionMiddleware())
 
     # Подключение обработчиков
     dp.include_router(menu.router)
