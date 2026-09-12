@@ -257,9 +257,10 @@ def get_subscription_kb(channel_url: str) -> InlineKeyboardMarkup:
 
 def get_unified_gate_kb(channel_url: str) -> InlineKeyboardMarkup:
     """Клавиатура единого онбординга: подписка + правила + принятие."""
+    from legal_texts import TERMS_URL
     b = InlineKeyboardBuilder()
     _b(b, "Подписаться на канал", url=channel_url, icon=E.LINK)
-    _b(b, "Пользовательское соглашение", data="legal:terms", icon=E.FILE)
+    _b(b, "Пользовательское соглашение", url=TERMS_URL, icon=E.FILE)
     _b(b, "Принять условия и войти", data="action:accept_gate", icon=E.CHECK, style=DANGER)
     b.adjust(1, 1, 1)
     return b.as_markup()
@@ -267,10 +268,12 @@ def get_unified_gate_kb(channel_url: str) -> InlineKeyboardMarkup:
 
 def get_terms_doc_kb() -> InlineKeyboardMarkup:
     """Клавиатура просмотра документа соглашения."""
+    from legal_texts import TERMS_URL
     b = InlineKeyboardBuilder()
+    _b(b, "Читать статью в Telegram", url=TERMS_URL, icon=E.LINK)
     _b(b, "Принять условия и войти", data="action:accept_gate", icon=E.CHECK, style=DANGER)
     _b(b, "Назад", data="gate:back", icon=E.BACK)
-    b.adjust(1, 1)
+    b.adjust(1, 1, 1)
     return b.as_markup()
 
 

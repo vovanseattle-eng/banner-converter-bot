@@ -115,12 +115,11 @@ async def cb_accept_gate(callback: CallbackQuery, state: FSMContext):
 @router.message(Command("terms"))
 @router.callback_query(F.data == "legal:terms")
 async def show_terms(event: Message | CallbackQuery):
-    from legal_texts import TERMS_TEXT
+    from legal_texts import TERMS_TEXT, TERMS_URL
     from keyboards import get_terms_doc_kb
-    from helpers import safe_edit_caption_or_text
     if isinstance(event, CallbackQuery):
-        await safe_edit_caption_or_text(event.message, text=TERMS_TEXT, reply_markup=get_terms_doc_kb())
         await event.answer()
+        await event.message.answer(text=TERMS_TEXT, reply_markup=get_terms_doc_kb(), parse_mode="HTML")
     else:
         await event.answer(text=TERMS_TEXT, reply_markup=get_terms_doc_kb(), parse_mode="HTML")
 

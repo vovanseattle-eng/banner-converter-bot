@@ -1,6 +1,7 @@
 from emoji import E, em, title
 
 CURRENT_DOC_VERSION = "1.0"
+TERMS_URL = "https://telegra.ph/Polzovatelskoe-soglashenie--BANNER-ANIMATOR-09-12"
 
 UNIFIED_GATE_SCREEN = (
     f"{title(E.MEDIA, 'BANNER ANIMATOR · КОНВЕРТЕР')}\n\n"
