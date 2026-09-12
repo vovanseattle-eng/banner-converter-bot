@@ -177,6 +177,7 @@ async def show_or_edit_banner(
             )
             if sent.animation and not cached_id:
                 config.save_cached_file_id(cache_key, sent.animation.file_id)
+            return
         except TelegramBadRequest as e:
             err_text = str(e).lower()
             if "icon" in err_text or "custom emoji" in err_text or "emoji_id" in err_text or "style" in err_text:
@@ -200,8 +201,23 @@ async def show_or_edit_banner(
                 )
                 if sent.animation:
                     config.save_cached_file_id(cache_key, sent.animation.file_id)
+                return
             except Exception:
                 pass
+
+        # Fallback to plain text if animation cannot be sent
+        try:
+            await msg.answer(text=caption, reply_markup=reply_markup, parse_mode=parse_mode)
+            return
+        except TelegramBadRequest as e:
+            if "icon" in str(e).lower() or "custom emoji" in str(e).lower():
+                try:
+                    await msg.answer(text=caption, reply_markup=strip_icons(reply_markup), parse_mode=parse_mode)
+                    return
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
     elif isinstance(event, Message):
         media_input = cached_id or FSInputFile(banner_path)
@@ -214,6 +230,7 @@ async def show_or_edit_banner(
             )
             if sent.animation and not cached_id:
                 config.save_cached_file_id(cache_key, sent.animation.file_id)
+            return
         except TelegramBadRequest as e:
             err_text = str(e).lower()
             if "icon" in err_text or "custom emoji" in err_text or "emoji_id" in err_text or "style" in err_text:
@@ -237,8 +254,23 @@ async def show_or_edit_banner(
                 )
                 if sent.animation:
                     config.save_cached_file_id(cache_key, sent.animation.file_id)
+                return
             except Exception:
                 pass
+
+        # Fallback to plain text if animation cannot be sent
+        try:
+            await event.answer(text=caption, reply_markup=reply_markup, parse_mode=parse_mode)
+            return
+        except TelegramBadRequest as e:
+            if "icon" in str(e).lower() or "custom emoji" in str(e).lower():
+                try:
+                    await event.answer(text=caption, reply_markup=strip_icons(reply_markup), parse_mode=parse_mode)
+                    return
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
 
 def format_subscription_required_text(channel_name: str = "gifthemy") -> str:

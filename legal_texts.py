@@ -3,8 +3,9 @@ from emoji import E, em, title
 CURRENT_DOC_VERSION = "1.0"
 
 UNIFIED_GATE_SCREEN = (
-    f"{title(E.VIDEO, 'BANNER ANIMATOR · КОНВЕРТЕР')}\n\n"
+    f"{title(E.MEDIA, 'BANNER ANIMATOR · КОНВЕРТЕР')}\n\n"
     f"<blockquote>"
+
     f"Генератор плавных 60 FPS анимированных баннеров (MP4 / GIF) из премиум-эмодзи и стикеров Telegram."
     f"</blockquote>\n\n"
     f"<b>Для бесплатного доступа к генератору:</b>\n"
