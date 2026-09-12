@@ -43,7 +43,16 @@ async def init_db():
             )
             """
         )
+        await db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS terms_acceptances (
+                user_id INTEGER PRIMARY KEY,
+                accepted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
         await db.commit()
+
 
 
 async def get_user_settings(user_id: int) -> dict:
@@ -108,5 +117,25 @@ async def update_user_field(user_id: int, field: str, value):
     settings = await get_user_settings(user_id)
     settings[field] = value
     await set_user_settings(user_id, settings)
+
+
+async def is_terms_accepted(user_id: int) -> bool:
+    """Проверяет принятие пользователем условий соглашения."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute(
+            "SELECT 1 FROM terms_acceptances WHERE user_id = ?", (user_id,)
+        ) as cursor:
+            row = await cursor.fetchone()
+            return row is not None
+
+
+async def record_terms_acceptance(user_id: int) -> None:
+    """Сохраняет факт принятия условий соглашения."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "INSERT OR REPLACE INTO terms_acceptances (user_id) VALUES (?)", (user_id,)
+        )
+        await db.commit()
+
 
 
