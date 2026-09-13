@@ -31,18 +31,40 @@ BANNER_COLOR_PATH = ASSETS_DIR / "banner_3.mp4"
 CACHE_FILE = ASSETS_DIR / "file_ids.json"
 
 
-def get_cached_file_id(key: str) -> str | None:
+def _file_hash(path: Path | None) -> str:
+    if not path or not path.exists():
+        return ""
+    try:
+        import hashlib
+        stat = path.stat()
+        with open(path, "rb") as f:
+            chunk = f.read(65536)
+        return hashlib.md5(f"{stat.st_size}_{chunk}".encode("latin1", errors="ignore")).hexdigest()
+    except Exception:
+        return ""
+
+
+def get_cached_file_id(key: str, file_path: Path | None = None) -> str | None:
     if CACHE_FILE.exists():
         try:
             import json
             data = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
-            return data.get(key)
+            entry = data.get(key)
+            if isinstance(entry, dict):
+                expected_hash = _file_hash(file_path)
+                if expected_hash and entry.get("hash") != expected_hash:
+                    return None
+                return entry.get("file_id")
+            elif isinstance(entry, str):
+                if file_path:
+                    return None
+                return entry
         except Exception:
             pass
     return None
 
 
-def save_cached_file_id(key: str, file_id: str) -> None:
+def save_cached_file_id(key: str, file_id: str, file_path: Path | None = None) -> None:
     try:
         import json
         data = {}
@@ -51,7 +73,8 @@ def save_cached_file_id(key: str, file_id: str) -> None:
                 data = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
             except Exception:
                 pass
-        data[key] = file_id
+        fhash = _file_hash(file_path)
+        data[key] = {"file_id": file_id, "hash": fhash} if fhash else file_id
         CACHE_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
     except Exception:
         pass

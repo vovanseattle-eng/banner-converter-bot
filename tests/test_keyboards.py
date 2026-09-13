@@ -114,4 +114,32 @@ class TestBannerConverterKeyboards(unittest.TestCase):
         self.assertEqual(rows[2][0].callback_data, "action:accept_gate")
         self.assertEqual(rows[2][0].style, DANGER)
 
+    def test_cache_invalidation_on_file_change(self):
+        import tempfile
+        from pathlib import Path
+        import config
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            test_cache_file = tmp_path / "test_file_ids.json"
+            orig_cache_file = config.CACHE_FILE
+            config.CACHE_FILE = test_cache_file
+            try:
+                banner = tmp_path / "test_banner.mp4"
+                banner.write_bytes(b"version_1_data")
+
+                config.save_cached_file_id("test_banner", "file_id_v1", banner)
+                self.assertEqual(config.get_cached_file_id("test_banner", banner), "file_id_v1")
+
+                # Change file contents
+                banner.write_bytes(b"version_2_data_new_contents")
+                # Cache must invalidate automatically!
+                self.assertIsNone(config.get_cached_file_id("test_banner", banner))
+
+                # Re-cache with v2
+                config.save_cached_file_id("test_banner", "file_id_v2", banner)
+                self.assertEqual(config.get_cached_file_id("test_banner", banner), "file_id_v2")
+            finally:
+                config.CACHE_FILE = orig_cache_file
+
 

@@ -124,7 +124,7 @@ async def show_or_edit_banner(
     reply_markup=None,
     parse_mode: str = "HTML",
 ) -> None:
-    cached_id = config.get_cached_file_id(cache_key)
+    cached_id = config.get_cached_file_id(cache_key, banner_path)
 
     if isinstance(event, CallbackQuery):
         msg = event.message
@@ -137,7 +137,7 @@ async def show_or_edit_banner(
             try:
                 sent = await msg.edit_media(media=media, reply_markup=reply_markup)
                 if hasattr(sent, "animation") and sent.animation and not cached_id:
-                    config.save_cached_file_id(cache_key, sent.animation.file_id)
+                    config.save_cached_file_id(cache_key, sent.animation.file_id, banner_path)
                 return
             except TelegramBadRequest as e:
                 err_text = str(e).lower()
@@ -154,7 +154,7 @@ async def show_or_edit_banner(
                         media = InputMediaAnimation(media=FSInputFile(banner_path), caption=caption, parse_mode=parse_mode)
                         sent = await msg.edit_media(media=media, reply_markup=reply_markup)
                         if hasattr(sent, "animation") and sent.animation:
-                            config.save_cached_file_id(cache_key, sent.animation.file_id)
+                            config.save_cached_file_id(cache_key, sent.animation.file_id, banner_path)
                         return
                     except TelegramBadRequest as e2:
                         if "message is not modified" in str(e2).lower():
@@ -176,7 +176,7 @@ async def show_or_edit_banner(
                 parse_mode=parse_mode,
             )
             if sent.animation and not cached_id:
-                config.save_cached_file_id(cache_key, sent.animation.file_id)
+                config.save_cached_file_id(cache_key, sent.animation.file_id, banner_path)
             return
         except TelegramBadRequest as e:
             err_text = str(e).lower()
@@ -200,7 +200,7 @@ async def show_or_edit_banner(
                     parse_mode=parse_mode,
                 )
                 if sent.animation:
-                    config.save_cached_file_id(cache_key, sent.animation.file_id)
+                    config.save_cached_file_id(cache_key, sent.animation.file_id, banner_path)
                 return
             except Exception:
                 pass
@@ -229,7 +229,7 @@ async def show_or_edit_banner(
                 parse_mode=parse_mode,
             )
             if sent.animation and not cached_id:
-                config.save_cached_file_id(cache_key, sent.animation.file_id)
+                config.save_cached_file_id(cache_key, sent.animation.file_id, banner_path)
             return
         except TelegramBadRequest as e:
             err_text = str(e).lower()
@@ -253,7 +253,7 @@ async def show_or_edit_banner(
                     parse_mode=parse_mode,
                 )
                 if sent.animation:
-                    config.save_cached_file_id(cache_key, sent.animation.file_id)
+                    config.save_cached_file_id(cache_key, sent.animation.file_id, banner_path)
                 return
             except Exception:
                 pass
